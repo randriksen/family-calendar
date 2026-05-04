@@ -28,7 +28,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const updates: { name?: string; color?: string; display_order?: number } = {};
+    const updates: { name?: string; color?: string; display_order?: number; photo_url?: string | null } = {};
 
     if (body.name !== undefined) {
       if (typeof body.name !== 'string' || !body.name.trim()) {
@@ -41,6 +41,9 @@ export async function PUT(
     }
     if (body.display_order !== undefined) {
       updates.display_order = parseInt(body.display_order, 10);
+    }
+    if ('photo_url' in body) {
+      updates.photo_url = body.photo_url ?? null;
     }
 
     // Handle reorder array

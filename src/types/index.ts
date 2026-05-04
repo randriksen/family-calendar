@@ -3,6 +3,7 @@ export interface Person {
   name: string;
   color: string;
   display_order: number;
+  photo_url?: string | null;
 }
 
 export interface CalendarSource {

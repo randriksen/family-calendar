@@ -14,6 +14,7 @@ export default function PeopleSettings({ people, t, onRefresh }: PeopleSettingsP
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState('#3b82f6');
+  const [editPhotoUrl, setEditPhotoUrl] = useState<string | null>(null);
   const [addName, setAddName] = useState('');
   const [addColor, setAddColor] = useState('#3b82f6');
   const [adding, setAdding] = useState(false);
@@ -24,6 +25,7 @@ export default function PeopleSettings({ people, t, onRefresh }: PeopleSettingsP
     setEditingId(person.id);
     setEditName(person.name);
     setEditColor(person.color);
+    setEditPhotoUrl(person.photo_url ?? null);
     setError(null);
   };
 
@@ -40,7 +42,7 @@ export default function PeopleSettings({ people, t, onRefresh }: PeopleSettingsP
       const res = await fetch(`/api/people/${editingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editName, color: editColor }),
+        body: JSON.stringify({ name: editName, color: editColor, photo_url: editPhotoUrl }),
       });
       if (!res.ok) throw new Error('Failed to save');
       setEditingId(null);
@@ -140,6 +142,27 @@ export default function PeopleSettings({ people, t, onRefresh }: PeopleSettingsP
                   onKeyDown={e => e.key === 'Enter' && saveEdit()}
                   autoFocus
                 />
+                <div className="flex items-center gap-2">
+                  {editPhotoUrl && (
+                    <img src={editPhotoUrl} alt="photo" className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600" />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="text-xs text-gray-600 dark:text-gray-400"
+                    onChange={async e => {
+                      const file = e.target.files?.[0];
+                      if (!file || !editingId) return;
+                      const fd = new FormData();
+                      fd.append('file', file);
+                      const r = await fetch(`/api/people/${editingId}/photo`, { method: 'POST', body: fd });
+                      if (r.ok) {
+                        const data = await r.json();
+                        setEditPhotoUrl(data.url);
+                      }
+                    }}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={saveEdit}

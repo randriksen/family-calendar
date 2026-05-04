@@ -124,6 +124,12 @@ function initSchema(db: Database.Database): void {
     db.exec('CREATE INDEX IF NOT EXISTS idx_events_ical_uid ON events(source_id, ical_uid)');
   }
 
+  // Add photo_url column to people if missing
+  const peopleCols = db.prepare('PRAGMA table_info(people)').all() as Array<{ name: string }>;
+  if (!peopleCols.find(c => c.name === 'photo_url')) {
+    db.exec('ALTER TABLE people ADD COLUMN photo_url TEXT');
+  }
+
   // Migrate existing calendar_sources.person_id → source_people
   const spCount = (db.prepare('SELECT COUNT(*) as count FROM source_people').get() as { count: number }).count;
   if (spCount === 0) {
@@ -170,17 +176,17 @@ export function getPersonById(id: string) {
   return db.prepare('SELECT * FROM people WHERE id = ?').get(id);
 }
 
-export function createPerson(name: string, color: string) {
+export function createPerson(name: string, color: string, photo_url?: string) {
   const db = getDb();
   const id = uuidv4();
   const maxOrder = (db.prepare('SELECT MAX(display_order) as max FROM people').get() as { max: number | null }).max ?? -1;
-  db.prepare('INSERT INTO people (id, name, color, display_order) VALUES (?, ?, ?, ?)').run(
-    id, name, color, maxOrder + 1
+  db.prepare('INSERT INTO people (id, name, color, display_order, photo_url) VALUES (?, ?, ?, ?, ?)').run(
+    id, name, color, maxOrder + 1, photo_url ?? null
   );
   return id;
 }
 
-export function updatePerson(id: string, updates: { name?: string; color?: string; display_order?: number }) {
+export function updatePerson(id: string, updates: { name?: string; color?: string; display_order?: number; photo_url?: string | null }) {
   const db = getDb();
   const fields = Object.entries(updates).filter(([, v]) => v !== undefined).map(([k]) => `${k} = ?`);
   if (fields.length === 0) return;
