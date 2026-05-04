@@ -130,14 +130,19 @@ export default function AgendaView({ date, events, sources, people, t, locale, t
           <button
             key={person.id}
             onClick={() => setSelectedPersonId(selectedPersonId === person.id ? null : person.id)}
-            className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium transition-colors border-2`}
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition-colors border-2`}
             style={
               selectedPersonId === person.id
                 ? { backgroundColor: person.color, color: getTextColor(person.color), borderColor: person.color }
                 : { borderColor: person.color, color: person.color, backgroundColor: 'transparent' }
             }
           >
-            {person.name}
+            {person.photo_url ? (
+              <img src={person.photo_url} className="w-5 h-5 rounded-full object-cover" alt={person.name} />
+            ) : (
+              <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: person.color }} />
+            )}
+            <span>{person.name}</span>
           </button>
         ))}
       </div>
