@@ -152,7 +152,7 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                 className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
                   today     ? 'bg-blue-50 dark:bg-blue-900/20' :
                   isWeekend ? 'bg-amber-50 dark:bg-amber-900/15' :
-                  isEvenRow ? 'bg-gray-50 dark:bg-[#1B2431]' : 'bg-white dark:bg-[#69778C]'
+                  isEvenRow ? 'bg-[#F0F4F8] dark:bg-[#1B2431]' : 'bg-white dark:bg-[#2E3F52]'
                 }`}
                 style={{ gridTemplateColumns: gridCols }}
               >

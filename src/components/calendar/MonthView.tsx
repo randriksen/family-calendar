@@ -8,7 +8,7 @@ import {
 import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
-import { computeEventLanes } from './calendarUtils';
+import { computeEventLanes, computeDaySingleSlots } from './calendarUtils';
 import { toTzDateStr } from '@/lib/tz';
 import { hexWithAlpha } from '@/lib/colorUtils';
 
@@ -151,6 +151,13 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
           const shortDayName = getShortDayName(t, day);
           const isEvenRow = idx % 2 === 0;
 
+          // Compute shared single-day slots across all persons for alignment
+          const allSingleForDay = Object.values(eventsByDate[dateStr] ?? {})
+            .flat()
+            .filter(ed => ed.position === 'single')
+            .map(ed => ed.event);
+          const { slots: singleDaySlots, total: totalSingleSlots } = computeDaySingleSlots(allSingleForDay);
+
           return (
             <div
               key={dateStr}
@@ -159,7 +166,7 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
               } ${
                 today    ? 'bg-blue-50 dark:bg-blue-900/20' :
                 isWeekend ? 'bg-amber-50 dark:bg-amber-900/15' :
-                isEvenRow ? 'bg-gray-50 dark:bg-[#1B2431]' : 'bg-white dark:bg-[#69778C]'
+                isEvenRow ? 'bg-[#F0F4F8] dark:bg-[#1B2431]' : 'bg-white dark:bg-[#2E3F52]'
               }`}
               style={{ gridTemplateColumns: gridCols }}
             >
@@ -215,6 +222,8 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
                         timezone={timezone}
                         onEventClick={onEventClick}
                         eventLanes={eventLanes}
+                        singleDaySlots={singleDaySlots}
+                        totalSingleSlots={totalSingleSlots}
                       />
                     </div>
                   );
