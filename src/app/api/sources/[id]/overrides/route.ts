@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSourceById, getEventOverrides, setEventOverrides } from '@/lib/db';
-import { refreshSourceById } from '@/lib/ical';
 
 export async function GET(
   _request: NextRequest,
@@ -30,13 +29,6 @@ export async function PUT(
     }
 
     setEventOverrides(params.id, body.overrides);
-
-    // Re-sync the source in the background so any previously-deleted event rows
-    // are restored. Errors here are non-fatal – query-time filtering still works.
-    refreshSourceById(params.id).catch(err =>
-      console.warn('[api/sources/[id]/overrides] background re-sync failed:', err)
-    );
-
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('[api/sources/[id]/overrides] PUT error:', err);
