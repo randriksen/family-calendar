@@ -138,6 +138,8 @@ export default function CalendarView({
   const [loading, setLoading] = useState(false);
   const [dark, setDark] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   useEffect(() => {
     setDark(document.documentElement.classList.contains('dark'));
@@ -211,6 +213,35 @@ export default function CalendarView({
     // Re-fetch events so the calendar reflects the change immediately
     await fetchEvents(view, date);
   };
+
+  // Mobile person switcher
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+    const threshold = 50;
+
+    if (Math.abs(diff) < threshold) return;
+
+    const currentIndex = selectedPerson ? people.findIndex(p => p.id === selectedPerson) : -1;
+    if (diff > 0) {
+      // Swiped left → next person
+      const nextIndex = (currentIndex + 1) % (people.length + 1);
+      setSelectedPerson(nextIndex === people.length ? null : people[nextIndex].id);
+    } else {
+      // Swiped right → previous person
+      const prevIndex = currentIndex === 0 ? people.length : currentIndex - 1;
+      setSelectedPerson(prevIndex === people.length ? null : people[prevIndex].id);
+    }
+    setTouchStart(null);
+  };
+
+  // Filter events for mobile single-person view
+  const filteredEvents = selectedPerson ? events.filter(e => e.person_id === selectedPerson) : events;
 
   const navLabel = getNavigationLabel(view, date, t, locale);
 
@@ -305,19 +336,53 @@ export default function CalendarView({
         </a>
       </header>
 
+      {/* ── Mobile person switcher ────────────────────────────────────── */}
+      {people.length > 1 && (
+        <div className="sm:hidden flex items-center gap-1 bg-gray-50 dark:bg-gray-800 px-2 py-1.5 overflow-x-auto border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => setSelectedPerson(null)}
+            className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+              selectedPerson === null
+                ? 'bg-blue-600 text-white'
+                : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600'
+            }`}
+          >
+            {t.nav.all || 'All'}
+          </button>
+          {people.map((person) => (
+            <button
+              key={person.id}
+              onClick={() => setSelectedPerson(person.id)}
+              className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                selectedPerson === person.id
+                  ? `text-white`
+                  : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600'
+              }`}
+              style={selectedPerson === person.id ? { backgroundColor: person.color } : {}}
+            >
+              {person.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Calendar content — leaves room for mobile bottom bar ───────── */}
-      <main className="flex-1 overflow-hidden pb-14 sm:pb-0">
+      <main 
+        className="flex-1 overflow-hidden pb-14 sm:pb-0"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {view === 'month' && (
-          <MonthView date={date} events={events} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
+          <MonthView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
         )}
         {view === 'week' && (
-          <WeekView date={date} events={events} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
+          <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
         )}
         {view === 'rolling' && (
-          <RollingView date={date} events={events} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
+          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
         )}
         {view === 'agenda' && (
-          <AgendaView date={date} events={events} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
+          <AgendaView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
         )}
       </main>
 

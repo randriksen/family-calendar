@@ -9,12 +9,13 @@
     "settings": "Innstillinger",
     "today": "I dag",
     "prev": "Forrige",
-    "next": "Neste"
+    "next": "Neste",
+    "all": "Alle"
   },
   "views": {
     "month": "Måned",
     "week": "Uke",
-    "rolling": "31 dager",
+    "rolling": "Neste 31",
     "agenda": "Agenda"
   },
   "calendar": {
