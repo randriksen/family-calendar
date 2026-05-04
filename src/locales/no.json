@@ -1,0 +1,133 @@
+{
+  "app": {
+    "name": "Familiekalender",
+    "loading": "Laster...",
+    "error": "En feil oppstod"
+  },
+  "nav": {
+    "calendar": "Kalender",
+    "settings": "Innstillinger",
+    "today": "I dag",
+    "prev": "Forrige",
+    "next": "Neste"
+  },
+  "views": {
+    "month": "Måned",
+    "week": "Uke",
+    "rolling": "31 dager",
+    "agenda": "Agenda"
+  },
+  "calendar": {
+    "weekNumber": "Uke",
+    "noEvents": "Ingen hendelser",
+    "holiday": "Helligdag",
+    "allDay": "Heldags",
+    "multiDay": "Flerdager",
+    "continues": "forts."
+  },
+  "days": {
+    "monday": "Mandag",
+    "tuesday": "Tirsdag",
+    "wednesday": "Onsdag",
+    "thursday": "Torsdag",
+    "friday": "Fredag",
+    "saturday": "Lørdag",
+    "sunday": "Søndag",
+    "short": {
+      "monday": "Man",
+      "tuesday": "Tir",
+      "wednesday": "Ons",
+      "thursday": "Tor",
+      "friday": "Fre",
+      "saturday": "Lør",
+      "sunday": "Søn"
+    }
+  },
+  "months": {
+    "january": "Januar",
+    "february": "Februar",
+    "march": "Mars",
+    "april": "April",
+    "may": "Mai",
+    "june": "Juni",
+    "july": "Juli",
+    "august": "August",
+    "september": "September",
+    "october": "Oktober",
+    "november": "November",
+    "december": "Desember"
+  },
+  "settings": {
+    "title": "Innstillinger",
+    "tabs": {
+      "people": "Personer",
+      "calendars": "Kalendere",
+      "display": "Utseende",
+      "about": "Om"
+    },
+    "people": {
+      "title": "Familiemedlemmer",
+      "addPerson": "Legg til person",
+      "name": "Navn",
+      "color": "Farge",
+      "order": "Rekkefølge",
+      "edit": "Rediger",
+      "delete": "Slett",
+      "save": "Lagre",
+      "cancel": "Avbryt",
+      "confirmDelete": "Er du sikker på at du vil slette denne personen? Alle deres kalendere og hendelser vil også slettes.",
+      "moveUp": "Flytt opp",
+      "moveDown": "Flytt ned"
+    },
+    "calendars": {
+      "title": "Kalenderkilder",
+      "addSource": "Legg til kalender",
+      "sourceName": "Kalendernavn",
+      "person": "Person",
+      "assignPeople": "Tilordne til personer",
+      "type": "Type",
+      "url": "URL",
+      "file": "Fil",
+      "sourceColor": "Hendelsefarge",
+      "lastFetched": "Sist synkronisert",
+      "never": "Aldri",
+      "refresh": "Synkroniser nå",
+      "delete": "Slett",
+      "confirmDelete": "Er du sikker på at du vil slette denne kalenderkilden?",
+      "icalUrl": "iCal URL",
+      "icalFile": "iCal Fil",
+      "dropzone": "Slipp .ics-fil her eller klikk for å laste opp",
+      "uploading": "Laster opp...",
+      "assignEvents": "Tilordne hendelser",
+      "saveAssignments": "Lagre tilordninger",
+      "savedAssignments": "Lagret!",
+      "allPeople": "Alle (standard)",
+      "noEventsToAssign": "Ingen hendelser funnet for denne kalenderen",
+      "syncFirst": "Synkroniser kalenderen først for å se hendelser",
+      "loadingEvents": "Laster hendelser..."
+    },
+    "display": {
+      "title": "Visningsinnstillinger",
+      "appName": "Appnavn",
+      "locale": "Språk",
+      "localeEn": "Engelsk",
+      "localeNo": "Norsk (Bokmål)",
+      "refreshInterval": "Oppdateringsintervall",
+      "defaultView": "Standard visning",
+      "save": "Lagre innstillinger",
+      "saved": "Innstillinger lagret!"
+    },
+    "about": {
+      "title": "Om",
+      "version": "Versjon 1.0.0",
+      "description": "En familiekalender-app som samler iCal-kalendere for alle familiemedlemmer i én veggkalender-visning. Bygget med Next.js, SQLite og kjærlighet."
+    }
+  },
+  "agenda": {
+    "today": "I dag",
+    "tomorrow": "I morgen",
+    "noUpcoming": "Ingen kommende hendelser",
+    "filterByPerson": "Filtrer etter person",
+    "all": "Alle"
+  }
+}

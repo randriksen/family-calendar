@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node /c/bin/code/family-calendar/scripts/generate-icons.mjs)",
+      "PowerShell(Get-Command node -ErrorAction SilentlyContinue; Get-Command npm -ErrorAction SilentlyContinue; $env:PATH -split ';' | Where-Object { $_ -match 'node|npm' })",
+      "Bash(docker build *)",
+      "Bash(npm run *)"
+    ]
+  }
+}
