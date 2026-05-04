@@ -1,6 +1,7 @@
 import * as ical from 'node-ical';
 import fs from 'fs';
 import path from 'path';
+import { createHash } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { addYears } from 'date-fns';
 import {
@@ -36,6 +37,45 @@ function isAllDay(date: ical.DateWithTimeZone | Date): boolean {
   return (date as unknown as { dateOnly?: boolean }).dateOnly === true;
 }
 
+// Returns the UTC offset of tzid at the given UTC instant, in milliseconds.
+// Positive means ahead of UTC (e.g. Europe/Berlin in CEST = +7_200_000).
+function tzOffsetMs(tzid: string, utcDate: Date): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tzid,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+  }).formatToParts(utcDate);
+  const g = (t: string) => parseInt(parts.find(p => p.type === t)!.value, 10);
+  return Date.UTC(g('year'), g('month') - 1, g('day'), g('hour') % 24, g('minute'), g('second')) - utcDate.getTime();
+}
+
+// Convert a wall-clock time in tzid to a UTC Date.
+// Two iterations handles DST-boundary edge cases.
+function wallClockInTzToUtc(y: number, mo: number, d: number, h: number, m: number, s: number, tzid: string): Date {
+  const nominal = Date.UTC(y, mo, d, h, m, s);
+  const off1 = tzOffsetMs(tzid, new Date(nominal));
+  const est = new Date(nominal - off1);
+  const off2 = tzOffsetMs(tzid, est);
+  return new Date(nominal - off2);
+}
+
+// rrule.between() generates occurrences using the server's local timezone hour from
+// dtstart instead of the event's TZID wall-clock hour. Fix each occurrence by
+// substituting the correct wall-clock time (from dtstart in tzid) while keeping
+// the calendar date rrule computed.
+function fixRruleOccurrence(occurrence: Date, dtstart: Date, tzid: string): Date {
+  const p = new Intl.DateTimeFormat('en-US', {
+    timeZone: tzid, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(dtstart);
+  const g = (t: string) => parseInt(p.find(x => x.type === t)!.value, 10);
+  return wallClockInTzToUtc(
+    occurrence.getFullYear(), occurrence.getMonth(), occurrence.getDate(),
+    g('hour') % 24, g('minute'), g('second'),
+    tzid,
+  );
+}
+
 function parseEvents(
   data: ical.CalendarResponse,
   sourceId: string,
@@ -50,20 +90,42 @@ function parseEvents(
     const event = component as ical.VEvent;
     if (!event.start) continue;
 
-    const icalUid = ((event.uid as string | undefined) || uuidv4()).trim();
+    // Generate a stable UID from content so overrides survive re-syncs.
+    // Some calendar providers (e.g. Hoopit) append a download timestamp to every
+    // UID, making each fetch produce different UIDs and breaking override matching.
+    // Using source + title + series-start gives a deterministic, stable key:
+    //   - recurring events: event.start is the DTSTART of the whole series, so
+    //     every expanded occurrence shares the same stable UID (correct — overrides
+    //     should apply to the whole series).
+    //   - non-recurring events: event.start is the actual date, unique per event.
+    const rawUid = ((event.uid as string | undefined) || '').trim();
+    const icalUid = createHash('sha1')
+      .update(`${sourceId}\0${event.summary ?? rawUid}\0${event.start.toISOString()}`)
+      .digest('hex');
     const title = event.summary || 'Untitled';
     const location = event.location || null;
     const description = typeof event.description === 'string' ? event.description : null;
 
     if (event.rrule) {
       try {
+        const allDay = isAllDay(event.start);
+        const tzid = !allDay ? (event.start as ical.DateWithTimeZone).tz : undefined;
+        const needsTzFix = !!tzid && tzid !== 'UTC' && tzid !== 'Etc/UTC';
+
         const occurrences = event.rrule.between(windowStart, windowEnd, true);
         for (const occurrence of occurrences) {
+          let start = occurrence;
+          if (needsTzFix) {
+            try {
+              start = fixRruleOccurrence(occurrence, event.start, tzid!);
+            } catch {
+              // TZID not recognized by Intl — keep rrule-generated time
+            }
+          }
           const duration = event.end && event.start
             ? event.end.getTime() - event.start.getTime()
             : 0;
-          const occurrenceEnd = duration > 0 ? new Date(occurrence.getTime() + duration) : null;
-          const allDay = isAllDay(event.start);
+          const occurrenceEnd = duration > 0 ? new Date(start.getTime() + duration) : null;
 
           for (const personId of personIds) {
             results.push({
@@ -72,7 +134,7 @@ function parseEvents(
               source_id: sourceId,
               person_id: personId,
               title,
-              start_date: toISOString(occurrence),
+              start_date: toISOString(start),
               end_date: occurrenceEnd ? toISOString(occurrenceEnd) : null,
               all_day: allDay ? 1 : 0,
               location,
