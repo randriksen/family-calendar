@@ -1,0 +1,133 @@
+{
+  "app": {
+    "name": "Family Calendar",
+    "loading": "Loading...",
+    "error": "An error occurred"
+  },
+  "nav": {
+    "calendar": "Calendar",
+    "settings": "Settings",
+    "today": "Today",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "views": {
+    "month": "Month",
+    "week": "Week",
+    "rolling": "31 Days",
+    "agenda": "Agenda"
+  },
+  "calendar": {
+    "weekNumber": "Wk",
+    "noEvents": "No events",
+    "holiday": "Holiday",
+    "allDay": "All day",
+    "multiDay": "Multi-day",
+    "continues": "cont."
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "short": {
+      "monday": "Mon",
+      "tuesday": "Tue",
+      "wednesday": "Wed",
+      "thursday": "Thu",
+      "friday": "Fri",
+      "saturday": "Sat",
+      "sunday": "Sun"
+    }
+  },
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "people": "People",
+      "calendars": "Calendars",
+      "display": "Display",
+      "about": "About"
+    },
+    "people": {
+      "title": "Family Members",
+      "addPerson": "Add Person",
+      "name": "Name",
+      "color": "Color",
+      "order": "Order",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirmDelete": "Are you sure you want to delete this person? All their calendars and events will also be deleted.",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
+    },
+    "calendars": {
+      "title": "Calendar Sources",
+      "addSource": "Add Calendar",
+      "sourceName": "Calendar Name",
+      "person": "Person",
+      "assignPeople": "Assign to people",
+      "type": "Type",
+      "url": "URL",
+      "file": "File",
+      "sourceColor": "Event Color",
+      "lastFetched": "Last synced",
+      "never": "Never",
+      "refresh": "Sync now",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure you want to delete this calendar source?",
+      "icalUrl": "iCal URL",
+      "icalFile": "iCal File",
+      "dropzone": "Drop .ics file here or click to upload",
+      "uploading": "Uploading...",
+      "assignEvents": "Assign events",
+      "saveAssignments": "Save assignments",
+      "savedAssignments": "Saved!",
+      "allPeople": "All (default)",
+      "noEventsToAssign": "No events found for this calendar",
+      "syncFirst": "Sync calendar first to see events",
+      "loadingEvents": "Loading events..."
+    },
+    "display": {
+      "title": "Display Settings",
+      "appName": "App Name",
+      "locale": "Language",
+      "localeEn": "English",
+      "localeNo": "Norwegian (Bokmål)",
+      "refreshInterval": "Refresh Interval",
+      "defaultView": "Default View",
+      "save": "Save Settings",
+      "saved": "Settings saved!"
+    },
+    "about": {
+      "title": "About",
+      "version": "Version 1.0.0",
+      "description": "A family calendar app that aggregates iCal calendars for all family members into a single wall-calendar view. Built with Next.js, SQLite, and love."
+    }
+  },
+  "agenda": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "noUpcoming": "No upcoming events",
+    "filterByPerson": "Filter by person",
+    "all": "All"
+  }
+}
