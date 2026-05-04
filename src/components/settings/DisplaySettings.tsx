@@ -18,6 +18,14 @@ const REFRESH_OPTIONS = [
   { value: '360', label: '6 hours' },
 ];
 
+const DATE_FORMAT_OPTIONS = [
+  { value: 'dd/MM/yyyy', label: 'dd/MM/yyyy (31/12/2026)' },
+  { value: 'dd.MM.yyyy', label: 'dd.MM.yyyy (31.12.2026)' },
+  { value: 'MM/dd/yyyy', label: 'MM/dd/yyyy (12/31/2026)' },
+  { value: 'yyyy-MM-dd', label: 'yyyy-MM-dd (2026-12-31)' },
+  { value: 'd. MMMM yyyy', label: 'd. MMMM yyyy (31. December 2026)' },
+];
+
 const VIEW_OPTIONS: { value: ViewType; labelKey: keyof LocaleData['views'] }[] = [
   { value: 'month', labelKey: 'month' },
   { value: 'week', labelKey: 'week' },
@@ -30,6 +38,7 @@ export default function DisplaySettings({ settings, t, onSaved }: DisplaySetting
   const [locale, setLocale] = useState(settings.locale || 'no');
   const [refreshInterval, setRefreshInterval] = useState(settings.refresh_interval_minutes || '60');
   const [defaultView, setDefaultView] = useState<ViewType>((settings.default_view as ViewType) || 'month');
+  const [dateFormat, setDateFormat] = useState(settings.date_format || 'dd/MM/yyyy');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -45,6 +54,7 @@ export default function DisplaySettings({ settings, t, onSaved }: DisplaySetting
           locale,
           refresh_interval_minutes: refreshInterval,
           default_view: defaultView,
+          date_format: dateFormat,
         }),
       });
       if (res.ok) {
@@ -118,6 +128,21 @@ export default function DisplaySettings({ settings, t, onSaved }: DisplaySetting
         >
           {VIEW_OPTIONS.map(opt => (
             <option key={opt.value} value={opt.value}>{t.views[opt.labelKey]}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {t.settings.display.dateFormat}
+        </label>
+        <select
+          value={dateFormat}
+          onChange={e => setDateFormat(e.target.value)}
+          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {DATE_FORMAT_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       </div>

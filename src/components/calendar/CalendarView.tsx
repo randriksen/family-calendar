@@ -21,9 +21,10 @@ interface CalendarViewProps {
   locale: string;
   defaultView: ViewType;
   appName: string;
+  dateFormat: string;
 }
 
-function getNavigationLabel(view: ViewType, date: Date, t: LocaleData, locale: string): string {
+function getNavigationLabel(view: ViewType, date: Date, t: LocaleData, locale: string, dateFormat: string): string {
   switch (view) {
     case 'month': {
       const monthName = getMonthName(locale, date.getMonth());
@@ -35,7 +36,7 @@ function getNavigationLabel(view: ViewType, date: Date, t: LocaleData, locale: s
     }
     case 'rolling': {
       const end = addDays(date, 30);
-      return `${format(date, 'dd.MM')} – ${format(end, 'dd.MM.yyyy')}`;
+      return `${format(date, dateFormat)} – ${format(end, dateFormat)}`;
     }
     case 'agenda':
       return `${getMonthName(locale, date.getMonth())} ${date.getFullYear()}`;
@@ -130,7 +131,7 @@ const VIEW_ICONS: Record<ViewType, (active: boolean) => React.ReactNode> = {
 };
 
 export default function CalendarView({
-  people, sources, t, locale, defaultView, appName,
+  people, sources, t, locale, defaultView, appName, dateFormat,
 }: CalendarViewProps) {
   const [view, setView] = useState<ViewType>(defaultView);
   const [date, setDate] = useState(new Date());
@@ -154,9 +155,8 @@ export default function CalendarView({
   const fetchEvents = useCallback(async (v: ViewType, d: Date) => {
     setLoading(true);
     const { start, end } = getDateRange(v, d);
-    const clampedStart = new Date(Math.max(start.getTime(), Date.now() - 30 * 24 * 60 * 60 * 1000));
     try {
-      const res = await fetch(`/api/events?start=${clampedStart.toISOString()}&end=${end.toISOString()}`);
+      const res = await fetch(`/api/events?start=${start.toISOString()}&end=${end.toISOString()}`);
       if (res.ok) setEvents(await res.json());
     } catch (err) {
       console.error('Failed to fetch events:', err);
@@ -243,7 +243,7 @@ export default function CalendarView({
   // Filter events for mobile single-person view
   const filteredEvents = selectedPerson ? events.filter(e => e.person_id === selectedPerson) : events;
 
-  const navLabel = getNavigationLabel(view, date, t, locale);
+  const navLabel = getNavigationLabel(view, date, t, locale, dateFormat);
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-gray-900">
@@ -376,10 +376,10 @@ export default function CalendarView({
           <MonthView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
         )}
         {view === 'week' && (
-          <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
+          <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} onEventClick={setSelectedEvent} />
         )}
         {view === 'rolling' && (
-          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
+          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} onEventClick={setSelectedEvent} />
         )}
         {view === 'agenda' && (
           <AgendaView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
@@ -393,6 +393,7 @@ export default function CalendarView({
           allEvents={events}
           sources={sources}
           people={people}
+          dateFormat={dateFormat}
           onClose={() => setSelectedEvent(null)}
           onAssign={handleEventAssign}
         />

@@ -10,6 +10,7 @@ interface EventDetailModalProps {
   allEvents: CalendarEvent[];
   sources: CalendarSource[];
   people: Person[];
+  dateFormat: string;
   onClose: () => void;
   onAssign: (sourceId: string, icalUid: string, personIds: string[]) => Promise<void>;
 }
@@ -21,14 +22,14 @@ function getTextColor(hex: string): string {
   return (r * 299 + g * 587 + b * 114) / 1000 >= 128 ? '#1f2937' : '#ffffff';
 }
 
-function fmtDate(dateStr: string, allDay: boolean): string {
+function fmtDate(dateStr: string, allDay: boolean, dateFormat: string): string {
   try {
-    return format(new Date(dateStr), allDay ? 'dd.MM.yyyy' : 'dd.MM.yyyy HH:mm');
+    return format(new Date(dateStr), allDay ? dateFormat : `${dateFormat} HH:mm`);
   } catch { return dateStr; }
 }
 
 export default function EventDetailModal({
-  event, allEvents, sources, people, onClose, onAssign,
+  event, allEvents, sources, people, dateFormat, onClose, onAssign,
 }: EventDetailModalProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -90,8 +91,8 @@ export default function EventDetailModal({
     }
   };
 
-  const dateStr = fmtDate(event.start_date, !!event.all_day);
-  const endStr = event.end_date ? fmtDate(event.end_date, !!event.all_day) : null;
+  const dateStr = fmtDate(event.start_date, !!event.all_day, dateFormat);
+  const endStr = event.end_date ? fmtDate(event.end_date, !!event.all_day, dateFormat) : null;
   const isMultiDay = event.end_date && event.start_date.slice(0, 10) !== event.end_date.slice(0, 10);
 
   return (

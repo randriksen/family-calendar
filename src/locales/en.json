@@ -116,7 +116,8 @@
       "refreshInterval": "Refresh Interval",
       "defaultView": "Default View",
       "save": "Save Settings",
-      "saved": "Settings saved!"
+      "saved": "Settings saved!",
+      "dateFormat": "Date format"
     },
     "about": {
       "title": "About",

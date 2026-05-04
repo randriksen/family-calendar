@@ -14,6 +14,7 @@ export default function HomePage() {
   const t = getLocaleData(locale);
   const defaultView = (settings.default_view as ViewType) || 'month';
   const appName = settings.app_name || t.app.name;
+  const dateFormat = settings.date_format || 'dd/MM/yyyy';
 
   return (
     <CalendarView
@@ -23,6 +24,7 @@ export default function HomePage() {
       locale={locale}
       defaultView={defaultView}
       appName={appName}
+      dateFormat={dateFormat}
     />
   );
 }

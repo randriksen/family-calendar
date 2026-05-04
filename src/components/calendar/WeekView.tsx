@@ -17,6 +17,7 @@ interface WeekViewProps {
   people: Person[];
   t: LocaleData;
   locale: string;
+  dateFormat: string;
   onEventClick?: (event: CalendarEvent) => void;
 }
 
@@ -60,7 +61,7 @@ function buildEventDisplays(events: CalendarEvent[]): Record<string, Record<stri
   return map;
 }
 
-export default function WeekView({ date, events, sources, people, t, locale, onEventClick }: WeekViewProps) {
+export default function WeekView({ date, events, sources, people, t, locale, dateFormat, onEventClick }: WeekViewProps) {
   const weekStart = startOfWeek(date, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
   const weekNum = getISOWeek(weekStart);
@@ -78,7 +79,7 @@ export default function WeekView({ date, events, sources, people, t, locale, onE
       {/* Header */}
       <div
         className="grid sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm"
-        style={{ gridTemplateColumns: `3rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
+        style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
       >
         <div className="px-2 py-2 text-xs text-gray-400 dark:text-gray-500 font-medium border-r border-gray-100 dark:border-gray-800 flex items-center justify-center">
           {t.calendar.weekNumber} {weekNum}
@@ -102,12 +103,13 @@ export default function WeekView({ date, events, sources, people, t, locale, onE
 
       {/* Day rows */}
       <div className="flex-1 overflow-auto">
-        {days.map(day => {
+        {days.map((day, idx) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const today = isToday(day);
           const isWeekend = day.getDay() === 0 || day.getDay() === 6;
           const holiday = getHoliday(locale, dateStr);
           const dayLabel = getDayLabel(day, t);
+          const showMonth = idx === 0 || day.getDate() === 1;
 
           return (
             <div
@@ -115,7 +117,7 @@ export default function WeekView({ date, events, sources, people, t, locale, onE
               className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
                 today ? 'bg-blue-50/40 dark:bg-blue-900/10' : isWeekend ? 'bg-gray-50/50 dark:bg-gray-800/30' : ''
               }`}
-              style={{ gridTemplateColumns: `3rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
+              style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
             >
               {/* Date label */}
               <div className={`px-1 py-2 flex flex-col items-center justify-start border-r border-gray-100 dark:border-gray-800 ${
@@ -127,6 +129,11 @@ export default function WeekView({ date, events, sources, people, t, locale, onE
                 }`}>
                   {day.getDate()}
                 </span>
+                {showMonth && (
+                  <span className="text-[10px] font-medium leading-none mt-0.5 uppercase tracking-wide">
+                    {format(day, 'MMM')}
+                  </span>
+                )}
                 {holiday && (
                   <span className="text-xs text-red-400 text-center leading-tight mt-0.5">🇳🇴</span>
                 )}
