@@ -14,6 +14,8 @@ interface DayCellProps {
   people: Person[];
   isToday: boolean;
   isCurrentMonth?: boolean;
+  maxEvents?: number;
+  hideLocation?: boolean;
   onEventClick?: (event: CalendarEvent) => void;
   eventLanes?: Map<string, number>;
 }
@@ -27,12 +29,19 @@ export default function DayCell({
   people,
   isToday,
   isCurrentMonth = true,
+  maxEvents,
+  hideLocation = false,
   onEventClick,
   eventLanes,
 }: DayCellProps) {
   const multiDay  = eventDisplays.filter(e => e.position !== 'single');
   const singleDay = eventDisplays.filter(e => e.position === 'single');
   const firstDays = multiDay.filter(e => e.position === 'first');
+
+  const allBadges = [...firstDays, ...singleDay];
+  const cap = maxEvents ?? Infinity;
+  const visibleBadges = allBadges.slice(0, cap);
+  const hiddenCount = allBadges.length - visibleBadges.length;
 
   // Compute per-event lane (stable across cells) or fall back to index
   const multiDayWithLane = multiDay.map((ed, idx) => ({
@@ -48,7 +57,7 @@ export default function DayCell({
 
   return (
     <div
-      className={`relative min-h-[52px] h-full flex flex-col ${
+      className={`relative min-h-[36px] h-full flex flex-col ${
         isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''
       } ${!isCurrentMonth ? 'opacity-50' : ''}`}
     >
@@ -108,29 +117,23 @@ export default function DayCell({
         className="flex flex-col gap-0.5 px-1 py-1"
         style={{ paddingRight: stripReserve > 0 ? stripReserve + 4 : 4 }}
       >
-        {/* First day of multi-day event: show the full badge */}
-        {firstDays.map(({ event }) => (
-          <EventBadge
-            key={`badge-${event.id}`}
-            event={event}
-            sources={sources}
-            people={people}
-            position="single"
-            onClick={onEventClick}
-          />
-        ))}
-
-        {/* Single-day events */}
-        {singleDay.map(({ event }) => (
+        {/* Visible badges (multi-day first days + single-day events, capped) */}
+        {visibleBadges.map(({ event }) => (
           <EventBadge
             key={event.id}
             event={event}
             sources={sources}
             people={people}
             position="single"
+            hideLocation={hideLocation}
             onClick={onEventClick}
           />
         ))}
+        {hiddenCount > 0 && (
+          <div className="text-[10px] text-gray-400 dark:text-gray-500 px-0.5 leading-tight cursor-default select-none">
+            +{hiddenCount}
+          </div>
+        )}
       </div>
     </div>
   );

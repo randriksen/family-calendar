@@ -130,7 +130,7 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
                   {day.getDate()}
                 </span>
                 {showMonth && (
-                  <span className="text-[10px] font-medium leading-none mt-0.5 uppercase tracking-wide">
+                  <span className="text-[9px] font-medium leading-none mt-0.5 uppercase tracking-wide opacity-60">
                     {format(day, 'MMM')}
                   </span>
                 )}
@@ -153,6 +153,8 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
                         sources={sources}
                         people={people}
                         isToday={today}
+                        maxEvents={3}
+                        hideLocation
                         onEventClick={onEventClick}
                         eventLanes={eventLanes}
                       />
