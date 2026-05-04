@@ -1,0 +1,22 @@
+services:
+  family-calendar:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      # Keep node_modules inside the container — Windows host filesystem
+      # is too slow and cross-platform binaries would break (better-sqlite3)
+      - node_modules:/app/node_modules
+      - ./data:/data
+    environment:
+      - DATABASE_PATH=/data/calendar.db
+      - UPLOADS_PATH=/data/uploads
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    restart: unless-stopped
+
+volumes:
+  node_modules:

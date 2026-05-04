@@ -1,0 +1,11 @@
+family-calendar
+node_modules
+.next
+data
+.git
+.gitignore
+*.md
+.env*
+.DS_Store
+Thumbs.db
+scripts
