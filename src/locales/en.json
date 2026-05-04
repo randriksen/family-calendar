@@ -9,12 +9,13 @@
     "settings": "Settings",
     "today": "Today",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "all": "All"
   },
   "views": {
     "month": "Month",
     "week": "Week",
-    "rolling": "31 Days",
+    "rolling": "Next 31",
     "agenda": "Agenda"
   },
   "calendar": {

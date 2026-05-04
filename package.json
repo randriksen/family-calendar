@@ -29,5 +29,10 @@
     "tailwindcss": "^3.4.3",
     "tsx": "^4.10.5",
     "typescript": "^5.4.5"
+  },
+  "overrides": {
+    "glob": "^10.3.10",
+    "workbox-cacheable-response": "^7.0.0",
+    "workbox-google-analytics": "^7.0.0"
   }
 }
