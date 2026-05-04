@@ -137,16 +137,14 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
               key={dateStr}
               className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
                 today    ? 'bg-blue-50 dark:bg-blue-900/20' :
-                isWeekend ? 'bg-amber-50 dark:bg-amber-900/10' : ''
+                isWeekend ? 'bg-amber-50 dark:bg-amber-900/15' :
+                isEvenRow ? 'bg-gray-50 dark:bg-[#1B2431]' : 'bg-white dark:bg-[#69778C]'
               }`}
               style={{ gridTemplateColumns: gridCols }}
             >
               {/* Date label */}
               <div className={`px-1 py-2 flex flex-col items-center justify-start border-r border-gray-100 dark:border-gray-800 ${
-                today    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600' :
-                isWeekend ? 'bg-amber-100/60 dark:bg-amber-900/25 text-gray-400 dark:text-gray-500' :
-                isEvenRow ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500' :
-                            'bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500'
+                today ? 'text-blue-600' : 'text-gray-500 dark:text-gray-400'
               }`}>
                 <span className="text-xs font-medium">{dayLabel}</span>
                 <span className={`text-base font-bold mt-0.5 w-8 h-8 flex items-center justify-center rounded-full ${

@@ -174,19 +174,20 @@ export default function DayCell({
               const ed = singleDay.find(e => singleDaySlots.get(e.event.id) === slot);
               if (ed) {
                 return (
-                  <EventBadge
-                    key={ed.event.id}
-                    event={ed.event}
-                    sources={sources}
-                    people={people}
-                    timezone={timezone}
-                    position="single"
-                    hideLocation={hideLocation}
-                    onClick={onEventClick}
-                  />
+                  <div key={ed.event.id} style={{ height: 22, flexShrink: 0, overflow: 'hidden' }}>
+                    <EventBadge
+                      event={ed.event}
+                      sources={sources}
+                      people={people}
+                      timezone={timezone}
+                      position="single"
+                      hideLocation={hideLocation}
+                      onClick={onEventClick}
+                    />
+                  </div>
                 );
               }
-              return <div key={`spacer-${slot}`} className="flex-shrink-0" style={{ height: 22 }} />;
+              return <div key={`spacer-${slot}`} style={{ height: 22, flexShrink: 0 }} />;
             })}
             {(() => {
               const overflowCount = singleDay.filter(ed => {
