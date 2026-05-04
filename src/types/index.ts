@@ -80,6 +80,7 @@ export interface LocaleData {
     today: string;
     prev: string;
     next: string;
+    all: string;
   };
   views: {
     month: string;
