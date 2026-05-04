@@ -11,7 +11,7 @@ export function computeDaySingleSlots(events: CalendarEvent[]): {
 } {
   const slots = new Map<string, number>();
 
-  // Group by logical key
+  // Pass 1: group by logical key (ical_uid+source_id or event.id)
   const groups = new Map<string, CalendarEvent[]>();
   for (const evt of events) {
     const key = evt.ical_uid ? `${evt.source_id}:${evt.ical_uid}` : evt.id;
@@ -19,20 +19,35 @@ export function computeDaySingleSlots(events: CalendarEvent[]): {
     groups.get(key)!.push(evt);
   }
 
-  // Sort groups by earliest start_date for stable ordering
-  const sortedGroups = Array.from(groups.entries()).sort(([, a], [, b]) => {
+  // Pass 2: merge groups whose events share the same title + start time (first 16 chars)
+  // This handles the same event appearing in different person-specific calendars
+  const mergedGroups: CalendarEvent[][] = [];
+  for (const groupEvents of Array.from(groups.values())) {
+    const titleTimes = new Set(groupEvents.map((e: CalendarEvent) => `${e.title}|${e.start_date.slice(0, 16)}`));
+    const existing = mergedGroups.find(merged =>
+      merged.some((e: CalendarEvent) => titleTimes.has(`${e.title}|${e.start_date.slice(0, 16)}`))
+    );
+    if (existing) {
+      existing.push(...groupEvents);
+    } else {
+      mergedGroups.push([...groupEvents]);
+    }
+  }
+
+  // Sort merged groups by earliest start_date for stable ordering
+  mergedGroups.sort((a, b) => {
     const aMin = a.map(e => e.start_date).sort()[0];
     const bMin = b.map(e => e.start_date).sort()[0];
     return aMin.localeCompare(bMin);
   });
 
-  sortedGroups.forEach(([, groupEvents], slotIdx) => {
+  mergedGroups.forEach((groupEvents, slotIdx) => {
     for (const evt of groupEvents) {
       slots.set(evt.id, slotIdx);
     }
   });
 
-  return { slots, total: sortedGroups.length };
+  return { slots, total: mergedGroups.length };
 }
 
 /**

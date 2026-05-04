@@ -96,6 +96,9 @@ export default function RollingView({ date, events, sources, people, t, locale, 
               className="px-1 py-1.5 text-center border-r border-gray-100 dark:border-gray-800 last:border-r-0"
               style={{ borderTopColor: person.color, borderTopWidth: 3 }}
             >
+              {person.photo_url && (
+                <img src={person.photo_url} alt={person.name} className="w-7 h-7 rounded-full mx-auto mb-0.5 object-cover" />
+              )}
               <span className="font-bold text-xs truncate block" style={{ color: person.color }}>
                 {person.name}
               </span>
