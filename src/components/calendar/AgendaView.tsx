@@ -46,7 +46,7 @@ function getDateLabel(day: Date, t: LocaleData, locale: string): string {
 interface DayGroup {
   date: Date;
   dateStr: string;
-  items: Array<{ event: CalendarEvent; person: Person | undefined }>;
+  items: Array<{ event: CalendarEvent; persons: Person[] }>;
   holiday: string | null;
 }
 
@@ -80,7 +80,21 @@ export default function AgendaView({ date, events, sources, people, t, locale, t
           });
         }
         const person = people.find(p => p.id === event.person_id);
-        map.get(key)!.items.push({ event, person });
+        // Deduplicate by logical key: same ical_uid+source_id or same event.id
+        const logicalKey = event.ical_uid ? `${event.source_id}:${event.ical_uid}` : event.id;
+        const existing = map.get(key)!.items.find(item => {
+          const k = item.event.ical_uid
+            ? `${item.event.source_id}:${item.event.ical_uid}`
+            : item.event.id;
+          return k === logicalKey;
+        });
+        if (existing) {
+          if (person && !existing.persons.find(p => p.id === person.id)) {
+            existing.persons.push(person);
+          }
+        } else {
+          map.get(key)!.items.push({ event, persons: person ? [person] : [] });
+        }
         cur.setDate(cur.getDate() + 1);
       }
     }
@@ -101,10 +115,10 @@ export default function AgendaView({ date, events, sources, people, t, locale, t
   return (
     <div className="flex flex-col h-full">
       {/* Person filter chips */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-2 flex gap-2 flex-wrap shadow-sm">
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-2 flex gap-2 overflow-x-auto shadow-sm" style={{ scrollbarWidth: 'none' }}>
         <button
           onClick={() => setSelectedPersonId(null)}
-          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+          className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
             selectedPersonId === null
               ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -116,7 +130,7 @@ export default function AgendaView({ date, events, sources, people, t, locale, t
           <button
             key={person.id}
             onClick={() => setSelectedPersonId(selectedPersonId === person.id ? null : person.id)}
-            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border-2`}
+            className={`flex-shrink-0 px-3 py-1 rounded-full text-sm font-medium transition-colors border-2`}
             style={
               selectedPersonId === person.id
                 ? { backgroundColor: person.color, color: getTextColor(person.color), borderColor: person.color }
@@ -182,7 +196,7 @@ export default function AgendaView({ date, events, sources, people, t, locale, t
                         {group.holiday && (
                           <div className="text-xs text-red-500 font-medium px-1">{group.holiday}</div>
                         )}
-                        {group.items.map(({ event, person }, idx) => {
+                        {group.items.map(({ event, persons }, idx) => {
                           const color = getEventColor(event, sources, people);
                           const textColor = getTextColor(color);
                           const time = !event.all_day ? formatTzTime(event.start_date, timezone) : '';
@@ -202,8 +216,8 @@ export default function AgendaView({ date, events, sources, people, t, locale, t
                                   {event.location && (
                                     <span className="truncate">📍 {event.location}</span>
                                   )}
-                                  {person && (
-                                    <span className="font-medium">{person.name}</span>
+                                  {persons.length > 0 && (
+                                    <span className="font-medium">{persons.map(p => p.name).join(', ')}</span>
                                   )}
                                 </div>
                               </div>

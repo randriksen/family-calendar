@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
-import type { CalendarEvent, CalendarSource, Person } from '@/types';
+import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getEventColor } from './EventBadge';
 import { formatTzTime } from '@/lib/tz';
 
@@ -11,6 +11,7 @@ interface EventDetailModalProps {
   allEvents: CalendarEvent[];
   sources: CalendarSource[];
   people: Person[];
+  t: LocaleData;
   dateFormat: string;
   timezone: string;
   onClose: () => void;
@@ -33,7 +34,7 @@ function fmtDate(dateStr: string, allDay: boolean, dateFormat: string, timezone:
 }
 
 export default function EventDetailModal({
-  event, allEvents, sources, people, dateFormat, timezone, onClose, onAssign,
+  event, allEvents, sources, people, t, dateFormat, timezone, onClose, onAssign,
 }: EventDetailModalProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -183,7 +184,7 @@ export default function EventDetailModal({
           <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-800 pt-3">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
-                Show for
+                {t.calendar.showFor}
               </p>
               {/* All / None quick-select */}
               <div className="flex gap-2">

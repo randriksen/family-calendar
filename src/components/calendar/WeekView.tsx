@@ -8,7 +8,7 @@ import {
 import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
-import { computeEventLanes } from './calendarUtils';
+import { computeEventLanes, computeDaySingleSlots } from './calendarUtils';
 import { toTzDateStr } from '@/lib/tz';
 
 interface WeekViewProps {
@@ -21,6 +21,7 @@ interface WeekViewProps {
   dateFormat: string;
   timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
+  singlePersonId?: string;
 }
 
 function getDayLabel(day: Date, t: LocaleData): string {
@@ -63,7 +64,7 @@ function buildEventDisplays(events: CalendarEvent[], timezone: string): Record<s
   return map;
 }
 
-export default function WeekView({ date, events, sources, people, t, locale, dateFormat, timezone, onEventClick }: WeekViewProps) {
+export default function WeekView({ date, events, sources, people, t, locale, dateFormat, timezone, onEventClick, singlePersonId }: WeekViewProps) {
   const weekStart = startOfWeek(date, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
   const weekNum = getISOWeek(weekStart);
@@ -76,18 +77,24 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
   const eventsByDate = useMemo(() => buildEventDisplays(events, timezone), [events, timezone]);
   const eventLanes = useMemo(() => computeEventLanes(events), [events]);
 
+  const displayedPeople = singlePersonId
+    ? people.filter(p => p.id === singlePersonId)
+    : people;
+  const colCount = Math.max(displayedPeople.length, 1);
+  const gridCols = singlePersonId ? `3.5rem 1fr` : `3.5rem repeat(${colCount}, minmax(0, 1fr))`;
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div
         className="grid sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm"
-        style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: gridCols }}
       >
         <div className="px-2 py-2 text-xs text-gray-400 dark:text-gray-500 font-medium border-r border-gray-100 dark:border-gray-800 flex items-center justify-center">
           {t.calendar.weekNumber} {weekNum}
         </div>
-        {people.length > 0 ? (
-          people.map(person => (
+        {displayedPeople.length > 0 ? (
+          displayedPeople.map(person => (
             <div
               key={person.id}
               className="px-1 py-1.5 text-center border-r border-gray-100 dark:border-gray-800 last:border-r-0"
@@ -114,15 +121,23 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
           const showMonth = idx === 0 || day.getDate() === 1;
           const isEvenRow = idx % 2 === 0;
 
+          // Compute shared single-day slots across all persons for alignment
+          const allSingleForDay = Object.values(eventsByDate[dateStr] ?? {})
+            .flat()
+            .filter(ed => ed.position === 'single')
+            .map(ed => ed.event);
+          const { slots: singleDaySlots, total: rawTotal } = computeDaySingleSlots(allSingleForDay);
+          const totalSingleSlots = Math.min(rawTotal, 3);
+
           return (
             <div
               key={dateStr}
               className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
                 today    ? 'bg-blue-100 dark:bg-blue-900/30' :
                 isWeekend ? 'bg-amber-50 dark:bg-amber-900/15' :
-                isEvenRow ? 'bg-gray-200 dark:bg-gray-800/60' : 'bg-white dark:bg-gray-900'
+                isEvenRow ? 'bg-gray-200 dark:bg-gray-700/80' : 'bg-white dark:bg-gray-900'
               }`}
-              style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, minmax(0, 1fr))` }}
+              style={{ gridTemplateColumns: gridCols }}
             >
               {/* Date label */}
               <div className={`px-1 py-2 flex flex-col items-center justify-start border-r border-gray-100 dark:border-gray-800 ${
@@ -145,8 +160,8 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
               </div>
 
               {/* Per-person cells */}
-              {people.length > 0 ? (
-                people.map(person => {
+              {displayedPeople.length > 0 ? (
+                displayedPeople.map(person => {
                   const personDisplays = eventsByDate[dateStr]?.[person.id] || [];
                   return (
                     <div
@@ -163,6 +178,8 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
                         timezone={timezone}
                         onEventClick={onEventClick}
                         eventLanes={eventLanes}
+                        singleDaySlots={singleDaySlots}
+                        totalSingleSlots={totalSingleSlots}
                       />
                     </div>
                   );

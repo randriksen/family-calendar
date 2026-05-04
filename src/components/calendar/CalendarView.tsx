@@ -339,7 +339,7 @@ export default function CalendarView({
       </header>
 
       {/* ── Mobile person switcher ────────────────────────────────────── */}
-      {people.length > 1 && (
+      {people.length > 1 && view !== 'agenda' && (
         <div className="sm:hidden flex items-center gap-1 bg-gray-50 dark:bg-gray-800 px-2 py-1.5 overflow-x-auto border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setSelectedPerson(null)}
@@ -378,13 +378,13 @@ export default function CalendarView({
           <MonthView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />
         )}
         {view === 'week' && (
-          <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} onEventClick={setSelectedEvent} />
+          <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} />
         )}
         {view === 'rolling' && (
-          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} rollingDays={rollingDays} onEventClick={setSelectedEvent} />
+          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} rollingDays={rollingDays} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} />
         )}
         {view === 'agenda' && (
-          <AgendaView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />
+          <AgendaView date={date} events={events} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />
         )}
       </main>
 
@@ -395,6 +395,7 @@ export default function CalendarView({
           allEvents={events}
           sources={sources}
           people={people}
+          t={t}
           dateFormat={dateFormat}
           timezone={timezone}
           onClose={() => setSelectedEvent(null)}

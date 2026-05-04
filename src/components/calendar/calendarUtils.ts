@@ -1,6 +1,41 @@
 import type { CalendarEvent } from '@/types';
 
 /**
+ * Computes shared slot indices for single-day events across all persons for a given day.
+ * Events sharing the same logical key (ical_uid+source_id, or event.id) get the same slot.
+ * Slots are sorted by start_date so identical events align vertically across person columns.
+ */
+export function computeDaySingleSlots(events: CalendarEvent[]): {
+  slots: Map<string, number>;
+  total: number;
+} {
+  const slots = new Map<string, number>();
+
+  // Group by logical key
+  const groups = new Map<string, CalendarEvent[]>();
+  for (const evt of events) {
+    const key = evt.ical_uid ? `${evt.source_id}:${evt.ical_uid}` : evt.id;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(evt);
+  }
+
+  // Sort groups by earliest start_date for stable ordering
+  const sortedGroups = Array.from(groups.entries()).sort(([, a], [, b]) => {
+    const aMin = a.map(e => e.start_date).sort()[0];
+    const bMin = b.map(e => e.start_date).sort()[0];
+    return aMin.localeCompare(bMin);
+  });
+
+  sortedGroups.forEach(([, groupEvents], slotIdx) => {
+    for (const evt of groupEvents) {
+      slots.set(evt.id, slotIdx);
+    }
+  });
+
+  return { slots, total: sortedGroups.length };
+}
+
+/**
  * Assigns a stable "lane" (right-side strip slot) to every multi-day event.
  *
  * Lane assignment is GLOBAL across all persons: if two people share the same
