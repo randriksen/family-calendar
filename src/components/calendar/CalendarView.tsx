@@ -375,7 +375,7 @@ export default function CalendarView({
         onTouchEnd={handleTouchEnd}
       >
         {view === 'month' && (
-          <MonthView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />
+          <MonthView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} />
         )}
         {view === 'week' && (
           <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} />

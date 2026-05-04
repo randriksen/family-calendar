@@ -20,6 +20,7 @@ interface MonthViewProps {
   locale: string;
   timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
+  singlePersonId?: string;
 }
 
 function hexWithAlpha(hex: string, alpha: number): string {
@@ -42,7 +43,7 @@ function getShortDayName(t: LocaleData, day: Date): string {
   return names[day.getDay()];
 }
 
-export default function MonthView({ date, events, sources, people, t, locale, timezone, onEventClick }: MonthViewProps) {
+export default function MonthView({ date, events, sources, people, t, locale, timezone, onEventClick, singlePersonId }: MonthViewProps) {
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
 
@@ -52,8 +53,13 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
     [monthStart.getTime(), monthEnd.getTime()]
   );
 
-  const colCount = people.length > 0 ? people.length : 1;
-  const gridCols = `3.5rem repeat(${colCount}, minmax(0, 1fr))`;
+  const displayedPeople = singlePersonId
+    ? people.filter(p => p.id === singlePersonId)
+    : people;
+
+  const gridCols = singlePersonId
+    ? `3.5rem 1fr`
+    : `3.5rem repeat(${Math.max(displayedPeople.length, 1)}, minmax(0, 1fr))`;
 
   // Stable lane assignments for multi-day events
   const eventLanes = useMemo(() => computeEventLanes(events), [events]);
@@ -116,13 +122,16 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
         <div className="px-2 py-2 text-xs text-gray-400 dark:text-gray-500 font-medium border-r border-gray-200 dark:border-gray-700">
           {t.calendar.weekNumber}
         </div>
-        {people.length > 0 ? (
-          people.map(person => (
+        {displayedPeople.length > 0 ? (
+          displayedPeople.map(person => (
             <div
               key={person.id}
               className="px-1 py-1.5 text-center border-r border-gray-200 dark:border-gray-700 last:border-r-0 flex flex-col items-center gap-0.5"
               style={{ borderTopColor: person.color, borderTopWidth: 3 }}
             >
+              {person.photo_url && (
+                <img src={person.photo_url} alt={person.name} className="w-7 h-7 rounded-full mx-auto mb-0.5 object-cover" />
+              )}
               <span className="font-bold text-xs truncate w-full text-center" style={{ color: person.color }}>
                 {person.name}
               </span>
@@ -189,8 +198,8 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
               </div>
 
               {/* Per-person event cells */}
-              {people.length > 0 ? (
-                people.map(person => {
+              {displayedPeople.length > 0 ? (
+                displayedPeople.map(person => {
                   const personDisplays = eventsByDate[dateStr]?.[person.id] || [];
                   return (
                     <div
