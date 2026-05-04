@@ -68,7 +68,7 @@ export default function DayCell({
   return (
     <div
       className={`relative min-h-[36px] h-full flex flex-col ${
-        isToday ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+        isToday ? 'bg-blue-100/50 dark:bg-blue-900/20' : ''
       } ${!isCurrentMonth ? 'opacity-50' : ''}`}
     >
       {/* ── Vertical strips — full-height bars on the right ── */}
@@ -110,12 +110,11 @@ export default function DayCell({
 
       {/* ── Ribbon rows: one per lane, connecting badge to strip ── */}
       {maxLane >= 0 && (
-        <div style={{ paddingTop: LANE_TOP, paddingRight: stripReserve }}>
+        <div style={{ paddingTop: LANE_TOP }}>
           {Array.from({ length: maxLane + 1 }, (_, lane) => {
             const ed = multiDayWithLane.find(e => e.lane === lane);
 
             if (!ed) {
-              // Empty placeholder keeps lane positions stable
               return <div key={`gap-${lane}`} style={{ height: LANE_H, marginBottom: LANE_GAP }} />;
             }
 
@@ -124,6 +123,8 @@ export default function DayCell({
             const textColor = getTextColor(color);
             const isFirst = position === 'first';
             const timeStr = !event.all_day ? fmtTime(event.start_date) : '';
+            // Reserve right side for the strip so text doesn't underlap it
+            const rightPad = stripReserve + 4;
 
             return (
               <div
@@ -131,7 +132,9 @@ export default function DayCell({
                 style={{
                   height: LANE_H,
                   marginBottom: LANE_GAP,
-                  backgroundColor: isFirst ? color : `${color}55`,
+                  // Full solid color — no transparency — to visibly bridge badge → strip
+                  backgroundColor: color,
+                  paddingRight: rightPad,
                   cursor: 'pointer',
                 }}
                 className="flex items-center overflow-hidden px-1.5 select-none hover:brightness-95"
