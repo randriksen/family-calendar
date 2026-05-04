@@ -140,66 +140,12 @@ function initSchema(db: Database.Database): void {
   if (settingsCount === 0) {
     const insertSetting = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)');
     const insertMany = db.transaction(() => {
-      insertSetting.run('locale', 'no');
+      insertSetting.run('locale', 'en');
       insertSetting.run('refresh_interval_minutes', '60');
-      insertSetting.run('app_name', 'Familiekalender');
-      insertSetting.run('default_view', 'month');
+      insertSetting.run('app_name', 'Family Calendar');
+      insertSetting.run('default_view', 'rolling');
     });
     insertMany();
-  }
-
-  // Seed default people
-  const peopleCount = (db.prepare('SELECT COUNT(*) as count FROM people').get() as { count: number }).count;
-  if (peopleCount === 0) {
-    const insertPerson = db.prepare(
-      'INSERT INTO people (id, name, color, display_order) VALUES (?, ?, ?, ?)'
-    );
-    const seedPeople = db.transaction(() => {
-      insertPerson.run(uuidv4(), 'Ole', '#3b82f6', 0);
-      insertPerson.run(uuidv4(), 'Joana', '#22c55e', 1);
-      insertPerson.run(uuidv4(), 'Kai', '#f97316', 2);
-      insertPerson.run(uuidv4(), 'Thea', '#a855f7', 3);
-      insertPerson.run(uuidv4(), 'Erik', '#ef4444', 4);
-    });
-    seedPeople();
-    console.log('[db] Seeded default people');
-  }
-
-  // Seed default calendar sources
-  const sourcesCount = (db.prepare('SELECT COUNT(*) as count FROM calendar_sources').get() as { count: number }).count;
-  if (sourcesCount === 0) {
-    const ole = db.prepare('SELECT id FROM people WHERE name = ?').get('Ole') as { id: string } | undefined;
-    const thea = db.prepare('SELECT id FROM people WHERE name = ?').get('Thea') as { id: string } | undefined;
-
-    if (ole && thea) {
-      const ins = db.prepare(
-        'INSERT INTO calendar_sources (id, person_id, name, type, url, file_path, color, last_fetched_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-      );
-      const insSP = db.prepare('INSERT OR IGNORE INTO source_people (source_id, person_id) VALUES (?, ?)');
-      const seedSources = db.transaction(() => {
-        const s1 = uuidv4();
-        ins.run(s1, ole.id, 'Google Calendar', 'ical_url',
-          null, null, null);
-        insSP.run(s1, ole.id);
-
-        const s2 = uuidv4();
-        ins.run(s2, ole.id, 'Jobb (Lillestrøm)', 'ical_url',
-          null, null, null);
-        insSP.run(s2, ole.id);
-
-        const s3 = uuidv4();
-        ins.run(s3, thea.id, 'Cheerleading', 'ical_url',
-          null, null, null);
-        insSP.run(s3, thea.id);
-
-        const s4 = uuidv4();
-        ins.run(s4, thea.id, 'Google Calendar', 'ical_url',
-          null, null, null);
-        insSP.run(s4, thea.id);
-      });
-      seedSources();
-      console.log('[db] Seeded default calendar sources');
-    }
   }
 }
 
