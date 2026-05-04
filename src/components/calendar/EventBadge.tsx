@@ -22,7 +22,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
     : null;
 }
 
-function getTextColor(bgHex: string): string {
+export function getTextColor(bgHex: string): string {
   const rgb = hexToRgb(bgHex);
   if (!rgb) return '#000';
   const yiq = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
