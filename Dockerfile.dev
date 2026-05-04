@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Build tools for native modules (better-sqlite3)
+RUN apk add --no-cache python3 make g++ libc6-compat
+
+# Copy and install dependencies (baked into image so node_modules stays in container)
+COPY package*.json ./
+RUN npm install
+
+EXPOSE 3000
+
+# Polling-based file watch works reliably on Windows/WSL bind mounts
+ENV WATCHPACK_POLLING=true
+ENV NEXT_TELEMETRY_DISABLED=1
+
+CMD ["npm", "run", "dev"]

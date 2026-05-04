@@ -1,0 +1,18 @@
+services:
+  family-calendar:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    environment:
+      - DATABASE_PATH=/data/calendar.db
+      - UPLOADS_PATH=/data/uploads
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/settings"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
