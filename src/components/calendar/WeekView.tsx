@@ -9,6 +9,7 @@ import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types'
 import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
 import { computeEventLanes } from './calendarUtils';
+import { toTzDateStr } from '@/lib/tz';
 
 interface WeekViewProps {
   date: Date;
@@ -18,6 +19,7 @@ interface WeekViewProps {
   t: LocaleData;
   locale: string;
   dateFormat: string;
+  timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
 }
 
@@ -27,11 +29,11 @@ function getDayLabel(day: Date, t: LocaleData): string {
   return t.days.short[dayKeys[dayIndex]];
 }
 
-function buildEventDisplays(events: CalendarEvent[]): Record<string, Record<string, EventDisplay[]>> {
+function buildEventDisplays(events: CalendarEvent[], timezone: string): Record<string, Record<string, EventDisplay[]>> {
   const map: Record<string, Record<string, EventDisplay[]>> = {};
   for (const event of events) {
-    const startStr = event.start_date.slice(0, 10);
-    const endStr = (event.end_date || event.start_date).slice(0, 10);
+    const startStr = toTzDateStr(new Date(event.start_date), timezone);
+    const endStr = toTzDateStr(new Date(event.end_date || event.start_date), timezone);
     const isMultiDay = startStr !== endStr;
     const cur = new Date(startStr + 'T00:00:00');
     const end = new Date(endStr + 'T00:00:00');
@@ -61,7 +63,7 @@ function buildEventDisplays(events: CalendarEvent[]): Record<string, Record<stri
   return map;
 }
 
-export default function WeekView({ date, events, sources, people, t, locale, dateFormat, onEventClick }: WeekViewProps) {
+export default function WeekView({ date, events, sources, people, t, locale, dateFormat, timezone, onEventClick }: WeekViewProps) {
   const weekStart = startOfWeek(date, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
   const weekNum = getISOWeek(weekStart);
@@ -71,7 +73,7 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
     [weekStart.getTime()]
   );
 
-  const eventsByDate = useMemo(() => buildEventDisplays(events), [events]);
+  const eventsByDate = useMemo(() => buildEventDisplays(events, timezone), [events, timezone]);
   const eventLanes = useMemo(() => computeEventLanes(events), [events]);
 
   return (
@@ -158,6 +160,7 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
                         isToday={today}
                         maxEvents={3}
                         hideLocation
+                        timezone={timezone}
                         onEventClick={onEventClick}
                         eventLanes={eventLanes}
                       />

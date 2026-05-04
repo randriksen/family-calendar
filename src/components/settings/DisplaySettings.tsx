@@ -33,12 +33,44 @@ const VIEW_OPTIONS: { value: ViewType; labelKey: keyof LocaleData['views'] }[] =
   { value: 'agenda', labelKey: 'agenda' },
 ];
 
+const ROLLING_DAYS_OPTIONS = [
+  { value: '7', label: '7 days' },
+  { value: '31', label: '31 days' },
+];
+
+const TIMEZONE_OPTIONS = [
+  { value: 'Europe/Oslo', label: 'Oslo (CET/CEST)' },
+  { value: 'Europe/London', label: 'London (GMT/BST)' },
+  { value: 'Europe/Paris', label: 'Paris (CET/CEST)' },
+  { value: 'Europe/Berlin', label: 'Berlin (CET/CEST)' },
+  { value: 'Europe/Stockholm', label: 'Stockholm (CET/CEST)' },
+  { value: 'Europe/Copenhagen', label: 'Copenhagen (CET/CEST)' },
+  { value: 'Europe/Helsinki', label: 'Helsinki (EET/EEST)' },
+  { value: 'Europe/Amsterdam', label: 'Amsterdam (CET/CEST)' },
+  { value: 'Europe/Rome', label: 'Rome (CET/CEST)' },
+  { value: 'Europe/Madrid', label: 'Madrid (CET/CEST)' },
+  { value: 'Europe/Athens', label: 'Athens (EET/EEST)' },
+  { value: 'Europe/Moscow', label: 'Moscow (MSK)' },
+  { value: 'America/New_York', label: 'New York (EST/EDT)' },
+  { value: 'America/Chicago', label: 'Chicago (CST/CDT)' },
+  { value: 'America/Los_Angeles', label: 'Los Angeles (PST/PDT)' },
+  { value: 'Asia/Dubai', label: 'Dubai (GST)' },
+  { value: 'Asia/Kolkata', label: 'Mumbai/Kolkata (IST)' },
+  { value: 'Asia/Singapore', label: 'Singapore (SGT)' },
+  { value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST/AEDT)' },
+  { value: 'Pacific/Auckland', label: 'Auckland (NZST/NZDT)' },
+  { value: 'UTC', label: 'UTC' },
+];
+
 export default function DisplaySettings({ settings, t, onSaved }: DisplaySettingsProps) {
   const [appName, setAppName] = useState(settings.app_name || 'Familiekalender');
   const [locale, setLocale] = useState(settings.locale || 'no');
   const [refreshInterval, setRefreshInterval] = useState(settings.refresh_interval_minutes || '60');
   const [defaultView, setDefaultView] = useState<ViewType>((settings.default_view as ViewType) || 'month');
   const [dateFormat, setDateFormat] = useState(settings.date_format || 'dd/MM/yyyy');
+  const [timezone, setTimezone] = useState(settings.display_timezone || 'Europe/Oslo');
+  const [rollingDays, setRollingDays] = useState(settings.rolling_days || '31');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -55,6 +87,8 @@ export default function DisplaySettings({ settings, t, onSaved }: DisplaySetting
           refresh_interval_minutes: refreshInterval,
           default_view: defaultView,
           date_format: dateFormat,
+          display_timezone: timezone,
+          rolling_days: rollingDays,
         }),
       });
       if (res.ok) {
@@ -142,6 +176,38 @@ export default function DisplaySettings({ settings, t, onSaved }: DisplaySetting
           className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {DATE_FORMAT_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Timezone */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {t.settings.display.timezone}
+        </label>
+        <select
+          value={timezone}
+          onChange={e => setTimezone(e.target.value)}
+          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {TIMEZONE_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Rolling window */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {t.settings.display.rollingDays}
+        </label>
+        <select
+          value={rollingDays}
+          onChange={e => setRollingDays(e.target.value)}
+          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {ROLLING_DAYS_OPTIONS.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>

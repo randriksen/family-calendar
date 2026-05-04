@@ -22,9 +22,11 @@ interface CalendarViewProps {
   defaultView: ViewType;
   appName: string;
   dateFormat: string;
+  timezone: string;
+  rollingDays: number;
 }
 
-function getNavigationLabel(view: ViewType, date: Date, t: LocaleData, locale: string, dateFormat: string): string {
+function getNavigationLabel(view: ViewType, date: Date, t: LocaleData, locale: string, dateFormat: string, rollingDays: number): string {
   switch (view) {
     case 'month': {
       const monthName = getMonthName(locale, date.getMonth());
@@ -35,7 +37,7 @@ function getNavigationLabel(view: ViewType, date: Date, t: LocaleData, locale: s
       return `${t.calendar.weekNumber} ${weekNum}, ${date.getFullYear()}`;
     }
     case 'rolling': {
-      const end = addDays(date, 30);
+      const end = addDays(date, rollingDays - 1);
       return `${format(date, dateFormat)} – ${format(end, dateFormat)}`;
     }
     case 'agenda':
@@ -45,14 +47,14 @@ function getNavigationLabel(view: ViewType, date: Date, t: LocaleData, locale: s
   }
 }
 
-function getDateRange(view: ViewType, date: Date): { start: Date; end: Date } {
+function getDateRange(view: ViewType, date: Date, rollingDays: number): { start: Date; end: Date } {
   switch (view) {
     case 'month':
       return { start: startOfMonth(date), end: endOfMonth(date) };
     case 'week':
       return { start: startOfWeek(date, { weekStartsOn: 1 }), end: endOfWeek(date, { weekStartsOn: 1 }) };
     case 'rolling':
-      return { start: date, end: addDays(date, 30) };
+      return { start: date, end: addDays(date, rollingDays - 1) };
     case 'agenda':
       return { start: date, end: addDays(date, 90) };
     default:
@@ -131,7 +133,7 @@ const VIEW_ICONS: Record<ViewType, (active: boolean) => React.ReactNode> = {
 };
 
 export default function CalendarView({
-  people, sources, t, locale, defaultView, appName, dateFormat,
+  people, sources, t, locale, defaultView, appName, dateFormat, timezone, rollingDays,
 }: CalendarViewProps) {
   const [view, setView] = useState<ViewType>(defaultView);
   const [date, setDate] = useState(new Date());
@@ -154,7 +156,7 @@ export default function CalendarView({
 
   const fetchEvents = useCallback(async (v: ViewType, d: Date) => {
     setLoading(true);
-    const { start, end } = getDateRange(v, d);
+    const { start, end } = getDateRange(v, d, rollingDays);
     try {
       const res = await fetch(`/api/events?start=${start.toISOString()}&end=${end.toISOString()}`);
       if (res.ok) setEvents(await res.json());
@@ -243,7 +245,7 @@ export default function CalendarView({
   // Filter events for mobile single-person view
   const filteredEvents = selectedPerson ? events.filter(e => e.person_id === selectedPerson) : events;
 
-  const navLabel = getNavigationLabel(view, date, t, locale, dateFormat);
+  const navLabel = getNavigationLabel(view, date, t, locale, dateFormat, rollingDays);
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-gray-900">
@@ -373,16 +375,16 @@ export default function CalendarView({
         onTouchEnd={handleTouchEnd}
       >
         {view === 'month' && (
-          <MonthView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
+          <MonthView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />
         )}
         {view === 'week' && (
-          <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} onEventClick={setSelectedEvent} />
+          <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} onEventClick={setSelectedEvent} />
         )}
         {view === 'rolling' && (
-          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} onEventClick={setSelectedEvent} />
+          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} rollingDays={rollingDays} onEventClick={setSelectedEvent} />
         )}
         {view === 'agenda' && (
-          <AgendaView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} onEventClick={setSelectedEvent} />
+          <AgendaView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />
         )}
       </main>
 
@@ -394,6 +396,7 @@ export default function CalendarView({
           sources={sources}
           people={people}
           dateFormat={dateFormat}
+          timezone={timezone}
           onClose={() => setSelectedEvent(null)}
           onAssign={handleEventAssign}
         />

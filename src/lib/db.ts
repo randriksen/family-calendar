@@ -145,12 +145,16 @@ function initSchema(db: Database.Database): void {
       insertSetting.run('app_name', 'Family Calendar');
       insertSetting.run('default_view', 'rolling');
       insertSetting.run('date_format', 'dd/MM/yyyy');
+      insertSetting.run('display_timezone', 'Europe/Oslo');
+      insertSetting.run('rolling_days', '31');
     });
     insertMany();
   } else {
     // Migrate: add any missing settings keys for existing installs
     const upsertIfMissing = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
     upsertIfMissing.run('date_format', 'dd/MM/yyyy');
+    upsertIfMissing.run('display_timezone', 'Europe/Oslo');
+    upsertIfMissing.run('rolling_days', '31');
   }
 }
 

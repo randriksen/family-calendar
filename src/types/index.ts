@@ -42,6 +42,8 @@ export interface Settings {
   app_name: string;
   default_view: string;
   date_format: string;
+  display_timezone: string;
+  rolling_days: string;
 }
 
 export type ViewType = 'month' | 'week' | 'rolling' | 'agenda';
@@ -187,6 +189,8 @@ export interface LocaleData {
       refreshInterval: string;
       defaultView: string;
       dateFormat: string;
+      timezone: string;
+      rollingDays: string;
       save: string;
       saved: string;
     };

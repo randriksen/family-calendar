@@ -9,6 +9,7 @@ import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types'
 import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
 import { computeEventLanes } from './calendarUtils';
+import { toTzDateStr } from '@/lib/tz';
 
 interface MonthViewProps {
   date: Date;
@@ -17,6 +18,7 @@ interface MonthViewProps {
   people: Person[];
   t: LocaleData;
   locale: string;
+  timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
 }
 
@@ -40,7 +42,7 @@ function getShortDayName(t: LocaleData, day: Date): string {
   return names[day.getDay()];
 }
 
-export default function MonthView({ date, events, sources, people, t, locale, onEventClick }: MonthViewProps) {
+export default function MonthView({ date, events, sources, people, t, locale, timezone, onEventClick }: MonthViewProps) {
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
 
@@ -62,8 +64,8 @@ export default function MonthView({ date, events, sources, people, t, locale, on
     const map: Record<string, Record<string, EventDisplay[]>> = {};
 
     for (const event of events) {
-      const startStr = event.start_date.slice(0, 10);
-      const endStr = (event.end_date || event.start_date).slice(0, 10);
+      const startStr = toTzDateStr(new Date(event.start_date), timezone);
+      const endStr = toTzDateStr(new Date(event.end_date || event.start_date), timezone);
       const isMultiDay = startStr !== endStr;
 
       const cur = new Date(startStr + 'T00:00:00');
@@ -202,6 +204,7 @@ export default function MonthView({ date, events, sources, people, t, locale, on
                         people={people}
                         isToday={today}
                         isCurrentMonth={true}
+                        timezone={timezone}
                         onEventClick={onEventClick}
                         eventLanes={eventLanes}
                       />

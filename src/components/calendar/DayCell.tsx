@@ -1,8 +1,8 @@
 'use client';
 
-import { format } from 'date-fns';
 import type { CalendarEvent, CalendarSource, Person } from '@/types';
 import EventBadge, { getEventColor, getTextColor, type EventPosition } from './EventBadge';
+import { formatTzTime } from '@/lib/tz';
 
 export interface EventDisplay {
   event: CalendarEvent;
@@ -17,6 +17,7 @@ interface DayCellProps {
   isCurrentMonth?: boolean;
   maxEvents?: number;
   hideLocation?: boolean;
+  timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
   eventLanes?: Map<string, number>;
 }
@@ -27,9 +28,6 @@ const LANE_H = 22;   // height of each multi-day ribbon row in px
 const LANE_GAP = 2;
 const LANE_TOP = 4;  // top padding before first ribbon row
 
-function fmtTime(dateStr: string): string {
-  try { return format(new Date(dateStr), 'HH:mm'); } catch { return ''; }
-}
 
 export default function DayCell({
   eventDisplays,
@@ -39,6 +37,7 @@ export default function DayCell({
   isCurrentMonth = true,
   maxEvents,
   hideLocation = false,
+  timezone,
   onEventClick,
   eventLanes,
 }: DayCellProps) {
@@ -124,7 +123,7 @@ export default function DayCell({
             const isFirst = position === 'first';
             const isLast  = position === 'last';
             const showBand = isFirst || isLast;
-            const timeStr = !event.all_day ? fmtTime(event.start_date) : '';
+            const timeStr = !event.all_day ? formatTzTime(event.start_date, timezone) : '';
             const rightPad = stripReserve + 4;
 
             // Middle days: just a spacer — only the vertical strip shows
@@ -171,6 +170,7 @@ export default function DayCell({
             event={event}
             sources={sources}
             people={people}
+            timezone={timezone}
             position="single"
             hideLocation={hideLocation}
             onClick={onEventClick}
