@@ -81,7 +81,7 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
       {/* Header */}
       <div
         className="grid sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm"
-        style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
+        style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, minmax(0, 1fr))` }}
       >
         <div className="px-2 py-2 text-xs text-gray-400 dark:text-gray-500 font-medium border-r border-gray-100 dark:border-gray-800 flex items-center justify-center">
           {t.calendar.weekNumber} {weekNum}
@@ -120,9 +120,9 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
               className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
                 today    ? 'bg-blue-100 dark:bg-blue-900/30' :
                 isWeekend ? 'bg-amber-50 dark:bg-amber-900/15' :
-                isEvenRow ? 'bg-gray-100 dark:bg-gray-800/50' : 'bg-white dark:bg-gray-900'
+                isEvenRow ? 'bg-gray-200 dark:bg-gray-800/60' : 'bg-white dark:bg-gray-900'
               }`}
-              style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
+              style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, minmax(0, 1fr))` }}
             >
               {/* Date label */}
               <div className={`px-1 py-2 flex flex-col items-center justify-start border-r border-gray-100 dark:border-gray-800 ${
@@ -151,7 +151,7 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
                   return (
                     <div
                       key={person.id}
-                      className="border-r border-gray-100 dark:border-gray-800 last:border-r-0 flex flex-col"
+                      className="border-r border-gray-100 dark:border-gray-800 last:border-r-0 flex flex-col overflow-hidden"
                     >
                       <DayCell
                         eventDisplays={personDisplays}
