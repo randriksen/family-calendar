@@ -10,6 +10,7 @@ interface EventBadgeProps {
   sources: CalendarSource[];
   people: Person[];
   compact?: boolean;
+  hideLocation?: boolean;
   position?: EventPosition;
   onClick?: (event: CalendarEvent) => void;
 }
@@ -43,7 +44,7 @@ function fmt(dateStr: string): string {
   try { return format(new Date(dateStr), 'HH:mm'); } catch { return ''; }
 }
 
-export default function EventBadge({ event, sources, people, compact = false, position = 'single', onClick }: EventBadgeProps) {
+export default function EventBadge({ event, sources, people, compact = false, hideLocation = false, position = 'single', onClick }: EventBadgeProps) {
   const color = getEventColor(event, sources, people);
   const textColor = getTextColor(color);
 
@@ -103,7 +104,7 @@ export default function EventBadge({ event, sources, people, compact = false, po
         {timeStr && <span className="flex-shrink-0 opacity-80 font-normal">{timeStr}</span>}
         <span className="truncate">{event.title}</span>
       </div>
-      {event.location && (
+      {event.location && !hideLocation && (
         <div className="truncate opacity-75 font-normal" style={{ fontSize: '0.65rem' }}>
           📍 {event.location}
         </div>

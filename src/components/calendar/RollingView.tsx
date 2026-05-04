@@ -176,6 +176,8 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                           sources={sources}
                           people={people}
                           isToday={today}
+                          maxEvents={3}
+                          hideLocation
                           onEventClick={onEventClick}
                           eventLanes={eventLanes}
                         />
