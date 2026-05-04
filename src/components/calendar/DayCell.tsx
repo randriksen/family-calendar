@@ -67,8 +67,8 @@ export default function DayCell({
   return (
     <div
       className={`relative min-h-[36px] h-full flex flex-col ${
-        isToday ? 'bg-blue-100/50 dark:bg-blue-900/20' : ''
-      } ${!isCurrentMonth ? 'opacity-50' : ''}`}
+        !isCurrentMonth ? 'opacity-50' : ''
+      }`}
     >
       {/* ── Vertical strips — full-height bars on the right ── */}
       {multiDayWithLane.map(({ event, position, lane }) => {
