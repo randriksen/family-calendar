@@ -48,7 +48,7 @@ ENV UPLOADS_PATH=/data/uploads
 
 # Copy entrypoint and make it executable (runs as root, fixes /data perms, then drops to nextjs)
 COPY docker-entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 USER root
 

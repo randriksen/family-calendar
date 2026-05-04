@@ -1,53 +1,89 @@
 import type { CalendarEvent } from '@/types';
 
 /**
- * Computes shared slot indices for single-day events across all persons for a given day.
- * Events sharing the same logical key (ical_uid+source_id, or event.id) get the same slot.
- * Slots are sorted by start_date so identical events align vertically across person columns.
+ * Computes per-column slot indices for single-day events so that shared events
+ * (same title+time across multiple persons) appear at the same vertical position
+ * in every person column.
+ *
+ * Algorithm:
+ * 1. Group events per person and sort each group by start time.
+ * 2. Detect "shared" event groups: same title + start minute across 2+ persons.
+ * 3. For each shared group, compute the minimum slot index it can occupy =
+ *    max over all participating persons of "how many events in that column start
+ *    strictly before this event". This ensures every column has a spacer row
+ *    above the shared event if needed.
+ * 4. Assign slots per column sequentially, bumping up to the minimum for shared events.
  */
 export function computeDaySingleSlots(events: CalendarEvent[]): {
   slots: Map<string, number>;
   total: number;
 } {
-  const slots = new Map<string, number>();
-
-  // Pass 1: group by logical key (ical_uid+source_id or event.id)
-  const groups = new Map<string, CalendarEvent[]>();
+  // Group by person and sort by start time
+  const byPerson = new Map<string, CalendarEvent[]>();
   for (const evt of events) {
-    const key = evt.ical_uid ? `${evt.source_id}:${evt.ical_uid}` : evt.id;
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(evt);
+    if (!byPerson.has(evt.person_id)) byPerson.set(evt.person_id, []);
+    byPerson.get(evt.person_id)!.push(evt);
+  }
+  for (const evts of Array.from(byPerson.values())) {
+    evts.sort((a, b) => a.start_date.localeCompare(b.start_date));
   }
 
-  // Pass 2: merge groups whose events share the same title + start time (first 16 chars)
-  // This handles the same event appearing in different person-specific calendars
-  const mergedGroups: CalendarEvent[][] = [];
-  for (const groupEvents of Array.from(groups.values())) {
-    const titleTimes = new Set(groupEvents.map((e: CalendarEvent) => `${e.title}|${e.start_date.slice(0, 16)}`));
-    const existing = mergedGroups.find(merged =>
-      merged.some((e: CalendarEvent) => titleTimes.has(`${e.title}|${e.start_date.slice(0, 16)}`))
-    );
-    if (existing) {
-      existing.push(...groupEvents);
-    } else {
-      mergedGroups.push([...groupEvents]);
+  // Group key: ical_uid (shared across calendars) or title+startMinute fallback
+  const getGroupKey = (e: CalendarEvent): string =>
+    e.ical_uid ? `uid:${e.ical_uid}` : `tt:${e.title}|${e.start_date.slice(0, 16)}`;
+
+  // Collect persons per group key and earliest start_date
+  const keyToPersons = new Map<string, Set<string>>();
+  const keyToStart  = new Map<string, string>();
+  for (const evt of events) {
+    const key = getGroupKey(evt);
+    if (!keyToPersons.has(key)) keyToPersons.set(key, new Set());
+    keyToPersons.get(key)!.add(evt.person_id);
+    if (!keyToStart.has(key) || evt.start_date < keyToStart.get(key)!) {
+      keyToStart.set(key, evt.start_date.slice(0, 16));
     }
   }
 
-  // Sort merged groups by earliest start_date for stable ordering
-  mergedGroups.sort((a, b) => {
-    const aMin = a.map(e => e.start_date).sort()[0];
-    const bMin = b.map(e => e.start_date).sort()[0];
-    return aMin.localeCompare(bMin);
-  });
+  // Shared = same key appears in 2+ different persons
+  const sharedKeys = new Set<string>();
+  for (const [key, persons] of Array.from(keyToPersons.entries())) {
+    if (persons.size > 1) sharedKeys.add(key);
+  }
 
-  mergedGroups.forEach((groupEvents, slotIdx) => {
-    for (const evt of groupEvents) {
-      slots.set(evt.id, slotIdx);
+  // For each shared group, minimum slot = max(events in any participating column
+  // that start strictly before this event's start minute)
+  const sharedMinSlot = new Map<string, number>();
+  for (const key of Array.from(sharedKeys)) {
+    const startMin = keyToStart.get(key)!;
+    const persons  = keyToPersons.get(key)!;
+    let min = 0;
+    for (const pid of Array.from(persons)) {
+      const before = (byPerson.get(pid) ?? []).filter(
+        e => e.start_date.slice(0, 16) < startMin
+      ).length;
+      if (before > min) min = before;
     }
-  });
+    sharedMinSlot.set(key, min);
+  }
 
-  return { slots, total: mergedGroups.length };
+  // Assign slots column-by-column
+  const slots = new Map<string, number>();
+  let maxSlot = 0;
+  for (const personEvents of Array.from(byPerson.values())) {
+    let cur = 0;
+    for (const evt of personEvents) {
+      const key = getGroupKey(evt);
+      if (sharedKeys.has(key)) {
+        const min = sharedMinSlot.get(key) ?? 0;
+        if (min > cur) cur = min;
+      }
+      slots.set(evt.id, cur);
+      if (cur > maxSlot) maxSlot = cur;
+      cur++;
+    }
+  }
+
+  return { slots, total: maxSlot + 1 };
 }
 
 /**

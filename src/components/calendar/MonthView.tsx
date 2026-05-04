@@ -10,6 +10,7 @@ import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
 import { computeEventLanes } from './calendarUtils';
 import { toTzDateStr } from '@/lib/tz';
+import { hexWithAlpha } from '@/lib/colorUtils';
 
 interface MonthViewProps {
   date: Date;
@@ -21,13 +22,6 @@ interface MonthViewProps {
   timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
   singlePersonId?: string;
-}
-
-function hexWithAlpha(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 function getShortDayName(t: LocaleData, day: Date): string {
@@ -205,7 +199,7 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
                     <div
                       key={person.id}
                       className="border-r border-gray-100 dark:border-gray-800 last:border-r-0 flex flex-col overflow-hidden"
-                      style={{ backgroundColor: hexWithAlpha(person.color, 0.04) }}
+                      style={{ backgroundColor: hexWithAlpha(person.color, 0.08) }}
                     >
                       <DayCell
                         eventDisplays={personDisplays}

@@ -10,6 +10,7 @@ import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
 import { computeEventLanes, computeDaySingleSlots } from './calendarUtils';
 import { toTzDateStr } from '@/lib/tz';
+import { hexWithAlpha } from '@/lib/colorUtils';
 
 interface WeekViewProps {
   date: Date;
@@ -129,22 +130,23 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
             .flat()
             .filter(ed => ed.position === 'single')
             .map(ed => ed.event);
-          const { slots: singleDaySlots, total: rawTotal } = computeDaySingleSlots(allSingleForDay);
-          const totalSingleSlots = Math.min(rawTotal, 3);
+          const { slots: singleDaySlots, total: totalSingleSlots } = computeDaySingleSlots(allSingleForDay);
 
           return (
             <div
               key={dateStr}
               className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
-                today    ? 'bg-blue-100 dark:bg-blue-900/30' :
-                isWeekend ? 'bg-amber-50 dark:bg-amber-900/15' :
-                isEvenRow ? 'bg-gray-200 dark:bg-gray-700/80' : 'bg-white dark:bg-gray-900'
+                today    ? 'bg-blue-50 dark:bg-blue-900/20' :
+                isWeekend ? 'bg-amber-50 dark:bg-amber-900/10' : ''
               }`}
               style={{ gridTemplateColumns: gridCols }}
             >
               {/* Date label */}
               <div className={`px-1 py-2 flex flex-col items-center justify-start border-r border-gray-100 dark:border-gray-800 ${
-                today ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'
+                today    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600' :
+                isWeekend ? 'bg-amber-100/60 dark:bg-amber-900/25 text-gray-400 dark:text-gray-500' :
+                isEvenRow ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500' :
+                            'bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500'
               }`}>
                 <span className="text-xs font-medium">{dayLabel}</span>
                 <span className={`text-base font-bold mt-0.5 w-8 h-8 flex items-center justify-center rounded-full ${
@@ -170,6 +172,7 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
                     <div
                       key={person.id}
                       className="border-r border-gray-100 dark:border-gray-800 last:border-r-0 flex flex-col overflow-hidden"
+                      style={{ backgroundColor: hexWithAlpha(person.color, isEvenRow ? 0.12 : 0.06) }}
                     >
                       <DayCell
                         eventDisplays={personDisplays}
