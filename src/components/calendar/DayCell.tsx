@@ -122,9 +122,15 @@ export default function DayCell({
             const color = getEventColor(event, sources, people);
             const textColor = getTextColor(color);
             const isFirst = position === 'first';
+            const isLast  = position === 'last';
+            const showBand = isFirst || isLast;
             const timeStr = !event.all_day ? fmtTime(event.start_date) : '';
-            // Reserve right side for the strip so text doesn't underlap it
             const rightPad = stripReserve + 4;
+
+            // Middle days: just a spacer — only the vertical strip shows
+            if (!showBand) {
+              return <div key={`ribbon-${event.id}`} style={{ height: LANE_H, marginBottom: LANE_GAP }} />;
+            }
 
             return (
               <div
@@ -132,7 +138,6 @@ export default function DayCell({
                 style={{
                   height: LANE_H,
                   marginBottom: LANE_GAP,
-                  // Full solid color — no transparency — to visibly bridge badge → strip
                   backgroundColor: color,
                   paddingRight: rightPad,
                   cursor: 'pointer',
