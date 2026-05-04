@@ -28,7 +28,8 @@ RUN apk add --no-cache libc6-compat
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+    adduser --system --uid 1001 nextjs && \
+    apk add --no-cache su-exec
 
 # Copy built output
 COPY --from=builder /app/public ./public
@@ -45,11 +46,15 @@ RUN mkdir -p /data/uploads && chown -R nextjs:nodejs /data
 ENV DATABASE_PATH=/data/calendar.db
 ENV UPLOADS_PATH=/data/uploads
 
-USER nextjs
+# Copy entrypoint and make it executable (runs as root, fixes /data perms, then drops to nextjs)
+COPY docker-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+USER root
 
 EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["/entrypoint.sh"]

@@ -14,6 +14,7 @@ interface RollingViewProps {
   people: Person[];
   t: LocaleData;
   locale: string;
+  dateFormat: string;
   onEventClick?: (event: CalendarEvent) => void;
 }
 
@@ -57,7 +58,7 @@ function buildEventDisplays(events: CalendarEvent[]): Record<string, Record<stri
   return map;
 }
 
-export default function RollingView({ date, events, sources, people, t, locale, onEventClick }: RollingViewProps) {
+export default function RollingView({ date, events, sources, people, t, locale, dateFormat, onEventClick }: RollingViewProps) {
   const days = useMemo(
     () => eachDayOfInterval({ start: date, end: addDays(date, 30) }),
     [date.getTime()]
@@ -67,13 +68,14 @@ export default function RollingView({ date, events, sources, people, t, locale, 
   const eventLanes = useMemo(() => computeEventLanes(events), [events]);
 
   let lastWeekNum = -1;
+  let lastMonth = -1;
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div
         className="grid sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm"
-        style={{ gridTemplateColumns: `3rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
+        style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
       >
         <div className="px-2 py-2 text-xs text-gray-400 dark:text-gray-500 font-medium border-r border-gray-100 dark:border-gray-800 flex items-center justify-center">
           {t.calendar.weekNumber}
@@ -103,16 +105,32 @@ export default function RollingView({ date, events, sources, people, t, locale, 
           const weekNum = getISOWeek(day);
           const isWeekBoundary = weekNum !== lastWeekNum;
           if (isWeekBoundary) lastWeekNum = weekNum;
+          const isMonthBoundary = day.getMonth() !== lastMonth;
+          if (isMonthBoundary) lastMonth = day.getMonth();
           const isWeekend = day.getDay() === 0 || day.getDay() === 6;
           const holiday = getHoliday(locale, dateStr);
           const dayLabel = getDayLabel(day, t);
 
           return (
             <div key={dateStr}>
-              {isWeekBoundary && (
+              {isMonthBoundary && (
+                <div
+                  className="grid bg-blue-50 dark:bg-blue-900/20 border-y border-blue-200 dark:border-blue-800"
+                  style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
+                >
+                  <div className="px-2 py-1 text-xs font-bold text-blue-600 dark:text-blue-400 border-r border-blue-200 dark:border-blue-800">
+                    {format(day, 'MMM')}
+                  </div>
+                  <div className="col-span-full px-2 py-1 text-xs font-bold text-blue-600 dark:text-blue-400">
+                    {format(day, 'MMMM yyyy')}
+                  </div>
+                </div>
+              )}
+
+              {isWeekBoundary && !isMonthBoundary && (
                 <div
                   className="grid bg-gray-50 dark:bg-gray-800/50 border-y border-gray-200 dark:border-gray-700"
-                  style={{ gridTemplateColumns: `3rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
+                  style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
                 >
                   <div className="px-2 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700">
                     {t.calendar.weekNumber} {weekNum}
@@ -127,7 +145,7 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                 className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
                   today ? 'bg-blue-50/40 dark:bg-blue-900/10' : isWeekend ? 'bg-gray-50/30 dark:bg-gray-800/20' : ''
                 }`}
-                style={{ gridTemplateColumns: `3rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
+                style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
               >
                 {/* Date label */}
                 <div className={`px-1 py-1 flex flex-col items-center justify-start border-r border-gray-100 dark:border-gray-800 ${

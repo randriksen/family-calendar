@@ -41,6 +41,7 @@ export interface Settings {
   refresh_interval_minutes: string;
   app_name: string;
   default_view: string;
+  date_format: string;
 }
 
 export type ViewType = 'month' | 'week' | 'rolling' | 'agenda';
@@ -185,6 +186,7 @@ export interface LocaleData {
       localeNo: string;
       refreshInterval: string;
       defaultView: string;
+      dateFormat: string;
       save: string;
       saved: string;
     };
