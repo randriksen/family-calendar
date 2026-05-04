@@ -98,6 +98,7 @@ export interface LocaleData {
     allDay: string;
     multiDay: string;
     continues: string;
+    showFor: string;
   };
   days: {
     monday: string;

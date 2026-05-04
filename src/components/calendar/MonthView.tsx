@@ -195,7 +195,7 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
                   return (
                     <div
                       key={person.id}
-                      className="border-r border-gray-100 dark:border-gray-800 last:border-r-0 flex flex-col"
+                      className="border-r border-gray-100 dark:border-gray-800 last:border-r-0 flex flex-col overflow-hidden"
                       style={{ backgroundColor: hexWithAlpha(person.color, 0.04) }}
                     >
                       <DayCell

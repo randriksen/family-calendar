@@ -5,7 +5,7 @@ import { eachDayOfInterval, addDays, isToday, getISOWeek, format } from 'date-fn
 import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
-import { computeEventLanes } from './calendarUtils';
+import { computeEventLanes, computeDaySingleSlots } from './calendarUtils';
 import { toTzDateStr } from '@/lib/tz';
 
 interface RollingViewProps {
@@ -19,6 +19,7 @@ interface RollingViewProps {
   timezone: string;
   rollingDays: number;
   onEventClick?: (event: CalendarEvent) => void;
+  singlePersonId?: string;
 }
 
 function getDayLabel(day: Date, t: LocaleData): string {
@@ -61,7 +62,7 @@ function buildEventDisplays(events: CalendarEvent[], timezone: string): Record<s
   return map;
 }
 
-export default function RollingView({ date, events, sources, people, t, locale, dateFormat, timezone, rollingDays, onEventClick }: RollingViewProps) {
+export default function RollingView({ date, events, sources, people, t, locale, dateFormat, timezone, rollingDays, onEventClick, singlePersonId }: RollingViewProps) {
   const days = useMemo(
     () => eachDayOfInterval({ start: date, end: addDays(date, rollingDays - 1) }),
     [date.getTime(), rollingDays]
@@ -69,6 +70,11 @@ export default function RollingView({ date, events, sources, people, t, locale, 
 
   const eventsByDate = useMemo(() => buildEventDisplays(events, timezone), [events, timezone]);
   const eventLanes = useMemo(() => computeEventLanes(events), [events]);
+
+  const displayedPeople = singlePersonId
+    ? people.filter(p => p.id === singlePersonId)
+    : people;
+  const gridCols = singlePersonId ? `3.5rem 1fr` : `3.5rem repeat(${Math.max(displayedPeople.length, 1)}, minmax(0, 1fr))`;
 
   let lastWeekNum = -1;
   let lastMonth = -1;
@@ -78,13 +84,13 @@ export default function RollingView({ date, events, sources, people, t, locale, 
       {/* Header */}
       <div
         className="grid sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm"
-        style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: gridCols }}
       >
         <div className="px-2 py-2 text-xs text-gray-400 dark:text-gray-500 font-medium border-r border-gray-100 dark:border-gray-800 flex items-center justify-center">
           {t.calendar.weekNumber}
         </div>
-        {people.length > 0 ? (
-          people.map(person => (
+        {displayedPeople.length > 0 ? (
+          displayedPeople.map(person => (
             <div
               key={person.id}
               className="px-1 py-1.5 text-center border-r border-gray-100 dark:border-gray-800 last:border-r-0"
@@ -115,12 +121,20 @@ export default function RollingView({ date, events, sources, people, t, locale, 
           const dayLabel = getDayLabel(day, t);
           const isEvenRow = dayIdx % 2 === 0;
 
+          // Compute shared single-day slots across all persons for alignment
+          const allSingleForDay = Object.values(eventsByDate[dateStr] ?? {})
+            .flat()
+            .filter(ed => ed.position === 'single')
+            .map(ed => ed.event);
+          const { slots: singleDaySlots, total: rawTotal } = computeDaySingleSlots(allSingleForDay);
+          const totalSingleSlots = Math.min(rawTotal, 3);
+
           return (
             <div key={dateStr}>
               {isMonthBoundary && (
                 <div
                   className="grid bg-blue-50 dark:bg-blue-900/20 border-y border-blue-200 dark:border-blue-800"
-                  style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, minmax(0, 1fr))` }}
+                  style={{ gridTemplateColumns: gridCols }}
                 >
                   <div className="px-2 py-1 text-xs font-bold text-blue-600 dark:text-blue-400 border-r border-blue-200 dark:border-blue-800">
                     {format(day, 'MMM')}
@@ -131,27 +145,13 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                 </div>
               )}
 
-              {isWeekBoundary && !isMonthBoundary && (
-                <div
-                  className="grid bg-gray-50 dark:bg-gray-800/50 border-y border-gray-200 dark:border-gray-700"
-                  style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, minmax(0, 1fr))` }}
-                >
-                  <div className="px-2 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700">
-                    {t.calendar.weekNumber} {weekNum}
-                  </div>
-                  {people.map(person => (
-                    <div key={person.id} className="border-r border-gray-200 dark:border-gray-700 last:border-r-0" />
-                  ))}
-                </div>
-              )}
-
               <div
                 className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
                   today     ? 'bg-blue-100 dark:bg-blue-900/30' :
                   isWeekend ? 'bg-amber-50 dark:bg-amber-900/15' :
-                  isEvenRow ? 'bg-gray-200 dark:bg-gray-800/60' : 'bg-white dark:bg-gray-900'
+                  isEvenRow ? 'bg-gray-200 dark:bg-gray-700/80' : 'bg-white dark:bg-gray-900'
                 }`}
-                style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, minmax(0, 1fr))` }}
+                style={{ gridTemplateColumns: gridCols }}
               >
                 {/* Date label */}
                 <div className={`px-1 py-1 flex flex-col items-center justify-start border-r border-gray-100 dark:border-gray-800 ${
@@ -163,14 +163,19 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                   }`}>
                     {day.getDate()}
                   </span>
+                  {isWeekBoundary && !isMonthBoundary && (
+                    <span className="text-[9px] font-medium leading-none mt-0.5 opacity-60">
+                      {t.calendar.weekNumber} {weekNum}
+                    </span>
+                  )}
                   {holiday && (
                     <span className="text-xs leading-none mt-0.5">🇳🇴</span>
                   )}
                 </div>
 
                 {/* Per-person cells */}
-                {people.length > 0 ? (
-                  people.map(person => {
+                {displayedPeople.length > 0 ? (
+                  displayedPeople.map(person => {
                     const personDisplays = eventsByDate[dateStr]?.[person.id] || [];
                     return (
                       <div
@@ -187,6 +192,8 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                           timezone={timezone}
                           onEventClick={onEventClick}
                           eventLanes={eventLanes}
+                          singleDaySlots={singleDaySlots}
+                          totalSingleSlots={totalSingleSlots}
                         />
                       </div>
                     );

@@ -15,11 +15,12 @@
   "views": {
     "month": "Month",
     "week": "Week",
-    "rolling": "Next 31",
+    "rolling": "Rolling",
     "agenda": "Agenda"
   },
   "calendar": {
     "weekNumber": "Wk",
+    "showFor": "Show for",
     "noEvents": "No events",
     "holiday": "Holiday",
     "allDay": "All day",

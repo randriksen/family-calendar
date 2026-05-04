@@ -15,11 +15,12 @@
   "views": {
     "month": "Måned",
     "week": "Uke",
-    "rolling": "Neste 31",
+    "rolling": "Rullende",
     "agenda": "Agenda"
   },
   "calendar": {
     "weekNumber": "Uke",
+    "showFor": "Vis for",
     "noEvents": "Ingen hendelser",
     "holiday": "Helligdag",
     "allDay": "Heldags",

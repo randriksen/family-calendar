@@ -20,6 +20,8 @@ interface DayCellProps {
   timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
   eventLanes?: Map<string, number>;
+  singleDaySlots?: Map<string, number>;
+  totalSingleSlots?: number;
 }
 
 const STRIP_W = 8;
@@ -40,6 +42,8 @@ export default function DayCell({
   timezone,
   onEventClick,
   eventLanes,
+  singleDaySlots,
+  totalSingleSlots,
 }: DayCellProps) {
   const multiDay  = eventDisplays.filter(e => e.position !== 'single');
   const singleDay = eventDisplays.filter(e => e.position === 'single');
@@ -164,22 +168,58 @@ export default function DayCell({
 
       {/* ── Single-day event badges ── */}
       <div className="flex flex-col gap-0.5 px-1 py-1" style={{ paddingRight: stripReserve > 0 ? stripReserve + 4 : 4 }}>
-        {visibleSingle.map(({ event }) => (
-          <EventBadge
-            key={event.id}
-            event={event}
-            sources={sources}
-            people={people}
-            timezone={timezone}
-            position="single"
-            hideLocation={hideLocation}
-            onClick={onEventClick}
-          />
-        ))}
-        {hiddenCount > 0 && (
-          <div className="text-[10px] text-gray-400 dark:text-gray-500 px-0.5 leading-tight cursor-default select-none">
-            +{hiddenCount}
-          </div>
+        {singleDaySlots && totalSingleSlots !== undefined ? (
+          <>
+            {Array.from({ length: totalSingleSlots }, (_, slot) => {
+              const ed = singleDay.find(e => singleDaySlots.get(e.event.id) === slot);
+              if (ed) {
+                return (
+                  <EventBadge
+                    key={ed.event.id}
+                    event={ed.event}
+                    sources={sources}
+                    people={people}
+                    timezone={timezone}
+                    position="single"
+                    hideLocation={hideLocation}
+                    onClick={onEventClick}
+                  />
+                );
+              }
+              return <div key={`spacer-${slot}`} className="flex-shrink-0" style={{ height: 22 }} />;
+            })}
+            {(() => {
+              const overflowCount = singleDay.filter(ed => {
+                const slot = singleDaySlots.get(ed.event.id);
+                return slot === undefined || slot >= totalSingleSlots;
+              }).length;
+              return overflowCount > 0 ? (
+                <div className="text-[10px] text-gray-400 dark:text-gray-500 px-0.5 leading-tight cursor-default select-none">
+                  +{overflowCount}
+                </div>
+              ) : null;
+            })()}
+          </>
+        ) : (
+          <>
+            {visibleSingle.map(({ event }) => (
+              <EventBadge
+                key={event.id}
+                event={event}
+                sources={sources}
+                people={people}
+                timezone={timezone}
+                position="single"
+                hideLocation={hideLocation}
+                onClick={onEventClick}
+              />
+            ))}
+            {hiddenCount > 0 && (
+              <div className="text-[10px] text-gray-400 dark:text-gray-500 px-0.5 leading-tight cursor-default select-none">
+                +{hiddenCount}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

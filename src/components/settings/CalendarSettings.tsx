@@ -288,6 +288,9 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
   const [editPeopleId, setEditPeopleId] = useState<string | null>(null);
   const [editPeopleIds, setEditPeopleIds] = useState<string[]>([]);
   const [savingPeople, setSavingPeople] = useState(false);
+  const [editUrlId, setEditUrlId] = useState<string | null>(null);
+  const [editUrlValue, setEditUrlValue] = useState('');
+  const [savingUrl, setSavingUrl] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -392,12 +395,32 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
     }
   };
 
+  const saveSourceUrl = async (sourceId: string) => {
+    if (!editUrlValue.trim()) return;
+    setSavingUrl(true);
+    try {
+      const res = await fetch(`/api/sources/${sourceId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: editUrlValue.trim() }),
+      });
+      if (!res.ok) throw new Error('Save failed');
+      setEditUrlId(null);
+      onRefresh();
+    } catch {
+      alert('Failed to save URL');
+    } finally {
+      setSavingUrl(false);
+    }
+  };
+
   const deleteSource = async (id: string) => {
     if (!confirm(t.settings.calendars.confirmDelete)) return;
     try {
       const res = await fetch(`/api/sources/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       if (expandedAssign === id) setExpandedAssign(null);
+      if (editUrlId === id) setEditUrlId(null);
       onRefresh();
     } catch {
       alert('Failed to delete source');
@@ -621,10 +644,25 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
+                {source.type === 'ical_url' && (
+                  <button
+                    onClick={() => {
+                      if (editUrlId === source.id) { setEditUrlId(null); }
+                      else { setEditUrlId(source.id); setEditUrlValue(source.url || ''); setEditPeopleId(null); setExpandedAssign(null); }
+                    }}
+                    className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
+                      editUrlId === source.id
+                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+                        : 'text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+                    }`}
+                  >
+                    Edit URL
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     if (editPeopleId === source.id) { setEditPeopleId(null); }
-                    else { openEditPeople(source); setExpandedAssign(null); }
+                    else { openEditPeople(source); setExpandedAssign(null); setEditUrlId(null); }
                   }}
                   className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
                     editPeopleId === source.id
@@ -638,6 +676,7 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
                   onClick={() => {
                     setExpandedAssign(expandedAssign === source.id ? null : source.id);
                     setEditPeopleId(null);
+                    setEditUrlId(null);
                   }}
                   className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
                     expandedAssign === source.id
@@ -684,6 +723,37 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
                   </button>
                   <button
                     onClick={() => setEditPeopleId(null)}
+                    className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    {t.settings.people.cancel}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Edit URL panel */}
+            {editUrlId === source.id && (
+              <div className="border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 px-4 py-3">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+                  Edit URL
+                </p>
+                <input
+                  type="url"
+                  value={editUrlValue}
+                  onChange={e => setEditUrlValue(e.target.value)}
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://calendar.google.com/calendar/ical/..."
+                />
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => saveSourceUrl(source.id)}
+                    disabled={savingUrl || !editUrlValue.trim()}
+                    className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    {savingUrl ? '...' : t.settings.calendars.saveAssignments}
+                  </button>
+                  <button
+                    onClick={() => setEditUrlId(null)}
                     className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     {t.settings.people.cancel}
