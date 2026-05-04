@@ -110,12 +110,15 @@ export default function WeekView({ date, events, sources, people, t, locale, dat
           const holiday = getHoliday(locale, dateStr);
           const dayLabel = getDayLabel(day, t);
           const showMonth = idx === 0 || day.getDate() === 1;
+          const isEvenRow = idx % 2 === 0;
 
           return (
             <div
               key={dateStr}
               className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
-                today ? 'bg-blue-50/40 dark:bg-blue-900/10' : isWeekend ? 'bg-gray-50/50 dark:bg-gray-800/30' : ''
+                today    ? 'bg-blue-50/60 dark:bg-blue-900/15' :
+                isWeekend ? 'bg-amber-50/60 dark:bg-amber-900/10' :
+                isEvenRow ? 'bg-gray-100/80 dark:bg-gray-800/30' : 'bg-white dark:bg-gray-900'
               }`}
               style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
             >

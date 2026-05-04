@@ -99,7 +99,7 @@ export default function RollingView({ date, events, sources, people, t, locale, 
 
       {/* Day rows */}
       <div className="flex-1 overflow-auto">
-        {days.map(day => {
+        {days.map((day, dayIdx) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const today = isToday(day);
           const weekNum = getISOWeek(day);
@@ -110,6 +110,7 @@ export default function RollingView({ date, events, sources, people, t, locale, 
           const isWeekend = day.getDay() === 0 || day.getDay() === 6;
           const holiday = getHoliday(locale, dateStr);
           const dayLabel = getDayLabel(day, t);
+          const isEvenRow = dayIdx % 2 === 0;
 
           return (
             <div key={dateStr}>
@@ -143,7 +144,9 @@ export default function RollingView({ date, events, sources, people, t, locale, 
 
               <div
                 className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
-                  today ? 'bg-blue-50/40 dark:bg-blue-900/10' : isWeekend ? 'bg-gray-50/30 dark:bg-gray-800/20' : ''
+                  today     ? 'bg-blue-50/60 dark:bg-blue-900/15' :
+                  isWeekend ? 'bg-amber-50/60 dark:bg-amber-900/10' :
+                  isEvenRow ? 'bg-gray-100/80 dark:bg-gray-800/30' : 'bg-white dark:bg-gray-900'
                 }`}
                 style={{ gridTemplateColumns: `3.5rem repeat(${Math.max(people.length, 1)}, 1fr)` }}
               >
