@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import type { CalendarEvent, CalendarSource, Person } from '@/types';
 import { getEventColor } from './EventBadge';
+import { formatTzTime } from '@/lib/tz';
 
 interface EventDetailModalProps {
   event: CalendarEvent;
@@ -11,6 +12,7 @@ interface EventDetailModalProps {
   sources: CalendarSource[];
   people: Person[];
   dateFormat: string;
+  timezone: string;
   onClose: () => void;
   onAssign: (sourceId: string, icalUid: string, personIds: string[]) => Promise<void>;
 }
@@ -22,14 +24,16 @@ function getTextColor(hex: string): string {
   return (r * 299 + g * 587 + b * 114) / 1000 >= 128 ? '#1f2937' : '#ffffff';
 }
 
-function fmtDate(dateStr: string, allDay: boolean, dateFormat: string): string {
+function fmtDate(dateStr: string, allDay: boolean, dateFormat: string, timezone: string): string {
   try {
-    return format(new Date(dateStr), allDay ? dateFormat : `${dateFormat} HH:mm`);
+    const dateOnly = format(new Date(dateStr), dateFormat);
+    if (allDay) return dateOnly;
+    return `${dateOnly} ${formatTzTime(dateStr, timezone)}`;
   } catch { return dateStr; }
 }
 
 export default function EventDetailModal({
-  event, allEvents, sources, people, dateFormat, onClose, onAssign,
+  event, allEvents, sources, people, dateFormat, timezone, onClose, onAssign,
 }: EventDetailModalProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -91,8 +95,8 @@ export default function EventDetailModal({
     }
   };
 
-  const dateStr = fmtDate(event.start_date, !!event.all_day, dateFormat);
-  const endStr = event.end_date ? fmtDate(event.end_date, !!event.all_day, dateFormat) : null;
+  const dateStr = fmtDate(event.start_date, !!event.all_day, dateFormat, timezone);
+  const endStr = event.end_date ? fmtDate(event.end_date, !!event.all_day, dateFormat, timezone) : null;
   const isMultiDay = event.end_date && event.start_date.slice(0, 10) !== event.end_date.slice(0, 10);
 
   return (

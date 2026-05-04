@@ -6,6 +6,7 @@ import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types'
 import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
 import { computeEventLanes } from './calendarUtils';
+import { toTzDateStr } from '@/lib/tz';
 
 interface RollingViewProps {
   date: Date;
@@ -15,6 +16,8 @@ interface RollingViewProps {
   t: LocaleData;
   locale: string;
   dateFormat: string;
+  timezone: string;
+  rollingDays: number;
   onEventClick?: (event: CalendarEvent) => void;
 }
 
@@ -24,11 +27,11 @@ function getDayLabel(day: Date, t: LocaleData): string {
   return t.days.short[dayKeys[dayIndex]];
 }
 
-function buildEventDisplays(events: CalendarEvent[]): Record<string, Record<string, EventDisplay[]>> {
+function buildEventDisplays(events: CalendarEvent[], timezone: string): Record<string, Record<string, EventDisplay[]>> {
   const map: Record<string, Record<string, EventDisplay[]>> = {};
   for (const event of events) {
-    const startStr = event.start_date.slice(0, 10);
-    const endStr = (event.end_date || event.start_date).slice(0, 10);
+    const startStr = toTzDateStr(new Date(event.start_date), timezone);
+    const endStr = toTzDateStr(new Date(event.end_date || event.start_date), timezone);
     const isMultiDay = startStr !== endStr;
     const cur = new Date(startStr + 'T00:00:00');
     const end = new Date(endStr + 'T00:00:00');
@@ -58,13 +61,13 @@ function buildEventDisplays(events: CalendarEvent[]): Record<string, Record<stri
   return map;
 }
 
-export default function RollingView({ date, events, sources, people, t, locale, dateFormat, onEventClick }: RollingViewProps) {
+export default function RollingView({ date, events, sources, people, t, locale, dateFormat, timezone, rollingDays, onEventClick }: RollingViewProps) {
   const days = useMemo(
-    () => eachDayOfInterval({ start: date, end: addDays(date, 30) }),
-    [date.getTime()]
+    () => eachDayOfInterval({ start: date, end: addDays(date, rollingDays - 1) }),
+    [date.getTime(), rollingDays]
   );
 
-  const eventsByDate = useMemo(() => buildEventDisplays(events), [events]);
+  const eventsByDate = useMemo(() => buildEventDisplays(events, timezone), [events, timezone]);
   const eventLanes = useMemo(() => computeEventLanes(events), [events]);
 
   let lastWeekNum = -1;
@@ -181,6 +184,7 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                           isToday={today}
                           maxEvents={3}
                           hideLocation
+                          timezone={timezone}
                           onEventClick={onEventClick}
                           eventLanes={eventLanes}
                         />

@@ -1,7 +1,7 @@
 'use client';
 
-import { format } from 'date-fns';
 import type { CalendarEvent, CalendarSource, Person } from '@/types';
+import { formatTzTime } from '@/lib/tz';
 
 export type EventPosition = 'single' | 'first' | 'middle' | 'last';
 
@@ -9,6 +9,7 @@ interface EventBadgeProps {
   event: CalendarEvent;
   sources: CalendarSource[];
   people: Person[];
+  timezone: string;
   compact?: boolean;
   hideLocation?: boolean;
   position?: EventPosition;
@@ -40,11 +41,7 @@ export function getEventColor(
   return person?.color || '#6b7280';
 }
 
-function fmt(dateStr: string): string {
-  try { return format(new Date(dateStr), 'HH:mm'); } catch { return ''; }
-}
-
-export default function EventBadge({ event, sources, people, compact = false, hideLocation = false, position = 'single', onClick }: EventBadgeProps) {
+export default function EventBadge({ event, sources, people, timezone, compact = false, hideLocation = false, position = 'single', onClick }: EventBadgeProps) {
   const color = getEventColor(event, sources, people);
   const textColor = getTextColor(color);
 
@@ -82,8 +79,8 @@ export default function EventBadge({ event, sources, people, compact = false, hi
   }
 
   // First day of multi-day event OR single-day event
-  const startTime = !event.all_day ? fmt(event.start_date) : '';
-  const endTime = !event.all_day && event.end_date ? fmt(event.end_date) : '';
+  const startTime = !event.all_day ? formatTzTime(event.start_date, timezone) : '';
+  const endTime = !event.all_day && event.end_date ? formatTzTime(event.end_date, timezone) : '';
   const timeStr = startTime && endTime && endTime !== startTime
     ? `${startTime}–${endTime}`
     : startTime;

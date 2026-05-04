@@ -15,6 +15,8 @@ export default function HomePage() {
   const defaultView = (settings.default_view as ViewType) || 'month';
   const appName = settings.app_name || t.app.name;
   const dateFormat = settings.date_format || 'dd/MM/yyyy';
+  const timezone = settings.display_timezone || 'Europe/Oslo';
+  const rollingDays = parseInt(settings.rolling_days || '31', 10);
 
   return (
     <CalendarView
@@ -25,6 +27,8 @@ export default function HomePage() {
       defaultView={defaultView}
       appName={appName}
       dateFormat={dateFormat}
+      timezone={timezone}
+      rollingDays={rollingDays}
     />
   );
 }

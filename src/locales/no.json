@@ -117,7 +117,9 @@
       "defaultView": "Standard visning",
       "save": "Lagre innstillinger",
       "saved": "Innstillinger lagret!",
-      "dateFormat": "Datoformat"
+      "dateFormat": "Datoformat",
+      "timezone": "Tidssone",
+      "rollingDays": "Rullende vindu"
     },
     "about": {
       "title": "Om",

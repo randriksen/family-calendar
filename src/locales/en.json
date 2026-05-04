@@ -117,7 +117,9 @@
       "defaultView": "Default View",
       "save": "Save Settings",
       "saved": "Settings saved!",
-      "dateFormat": "Date format"
+      "dateFormat": "Date format",
+      "timezone": "Time Zone",
+      "rollingDays": "Rolling window"
     },
     "about": {
       "title": "About",

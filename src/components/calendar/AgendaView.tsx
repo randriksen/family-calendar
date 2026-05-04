@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { isToday, isTomorrow, format, parseISO } from 'date-fns';
+import { isToday, isTomorrow, format } from 'date-fns';
 import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getHoliday, getMonthName } from '@/lib/i18n';
 import { getEventColor } from './EventBadge';
+import { toTzDateStr, formatTzTime } from '@/lib/tz';
 
 interface AgendaViewProps {
   date: Date;
@@ -13,6 +14,7 @@ interface AgendaViewProps {
   people: Person[];
   t: LocaleData;
   locale: string;
+  timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
 }
 
@@ -30,15 +32,6 @@ function getTextColor(bgHex: string): string {
   return yiq >= 128 ? '#1f2937' : '#ffffff';
 }
 
-function formatTime(dateStr: string, allDay: boolean): string {
-  if (allDay) return '';
-  try {
-    const d = new Date(dateStr);
-    return format(d, 'HH:mm');
-  } catch {
-    return '';
-  }
-}
 
 function getDateLabel(day: Date, t: LocaleData, locale: string): string {
   if (isToday(day)) return t.agenda.today;
@@ -57,7 +50,7 @@ interface DayGroup {
   holiday: string | null;
 }
 
-export default function AgendaView({ date, events, sources, people, t, locale, onEventClick }: AgendaViewProps) {
+export default function AgendaView({ date, events, sources, people, t, locale, timezone, onEventClick }: AgendaViewProps) {
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
 
   const filteredEvents = useMemo(() => {
@@ -70,8 +63,8 @@ export default function AgendaView({ date, events, sources, people, t, locale, o
     const map = new Map<string, DayGroup>();
 
     for (const event of filteredEvents) {
-      const startStr = event.start_date.slice(0, 10);
-      const endStr = event.end_date ? event.end_date.slice(0, 10) : startStr;
+      const startStr = toTzDateStr(new Date(event.start_date), timezone);
+      const endStr = event.end_date ? toTzDateStr(new Date(event.end_date), timezone) : startStr;
       const start = new Date(startStr + 'T00:00:00');
       const end = new Date(endStr + 'T00:00:00');
       const cur = new Date(start);
@@ -192,7 +185,7 @@ export default function AgendaView({ date, events, sources, people, t, locale, o
                         {group.items.map(({ event, person }, idx) => {
                           const color = getEventColor(event, sources, people);
                           const textColor = getTextColor(color);
-                          const time = formatTime(event.start_date, !!event.all_day);
+                          const time = !event.all_day ? formatTzTime(event.start_date, timezone) : '';
 
                           return (
                             <div
