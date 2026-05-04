@@ -140,7 +140,7 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
 
       {/* Day rows */}
       <div className="flex-1 overflow-auto">
-        {days.map(day => {
+        {days.map((day, idx) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const today = isToday(day);
           const isMonday = day.getDay() === 1;
@@ -149,13 +149,18 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
           const isWeekend = day.getDay() === 0 || day.getDay() === 6;
           const holiday = getHoliday(locale, dateStr);
           const shortDayName = getShortDayName(t, day);
+          const isEvenRow = idx % 2 === 0;
 
           return (
             <div
               key={dateStr}
               className={`grid ${
                 isMonday ? 'border-t-2 border-t-gray-200 dark:border-t-gray-700' : 'border-t border-t-gray-100 dark:border-t-gray-800'
-              } ${today ? 'bg-blue-50/30 dark:bg-blue-900/10' : isWeekend ? 'bg-gray-50/40 dark:bg-gray-800/30' : ''}`}
+              } ${
+                today    ? 'bg-blue-50 dark:bg-blue-900/20' :
+                isWeekend ? 'bg-amber-50 dark:bg-amber-900/15' :
+                isEvenRow ? 'bg-gray-50 dark:bg-[#1B2431]' : 'bg-white dark:bg-[#69778C]'
+              }`}
               style={{ gridTemplateColumns: gridCols }}
             >
               {/* Left column */}
@@ -199,7 +204,7 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
                     <div
                       key={person.id}
                       className="border-r border-gray-100 dark:border-gray-800 last:border-r-0 flex flex-col overflow-hidden"
-                      style={{ backgroundColor: hexWithAlpha(person.color, 0.08) }}
+                      style={{ backgroundColor: hexWithAlpha(person.color, isEvenRow ? 0.12 : 0.06) }}
                     >
                       <DayCell
                         eventDisplays={personDisplays}
