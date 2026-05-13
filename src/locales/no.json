@@ -125,7 +125,7 @@
     },
     "about": {
       "title": "Om",
-      "version": "Versjon 1.0.0",
+      "version": "Versjon",
       "description": "En familiekalender-app som samler iCal-kalendere for alle familiemedlemmer i én veggkalender-visning. Bygget med Next.js, SQLite og kjærlighet."
     }
   },

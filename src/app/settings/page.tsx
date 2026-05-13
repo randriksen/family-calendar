@@ -125,7 +125,7 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t.settings.about.title}</h2>
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t.settings.about.version}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">v{process.env.NEXT_PUBLIC_APP_VERSION}</p>
               <p className="text-sm text-gray-700 dark:text-gray-300">{t.settings.about.description}</p>
               <div className="pt-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500 space-y-1">
                 <div>Built with Next.js 14, SQLite, node-ical, date-fns</div>
