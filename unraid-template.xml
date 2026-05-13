@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>family-calendar</Name>
+  <Repository>ghcr.io/randriksen/family-calendar:latest</Repository>
+  <Registry>https://ghcr.io/</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Project>https://github.com/randriksen/family-calendar</Project>
+  <Overview>Shared family calendar that aggregates iCal feeds from all family members into one wall-calendar view.&#xD;&#xA;&#xD;&#xA;Supports Google Calendar, iCloud, Outlook, and any iCal URL. Events auto-sync on a configurable per-calendar schedule (default every 4 hours). Includes month, week, rolling, and agenda views with per-person color coding.</Overview>
+  <Category>Productivity: Tools:</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <Icon>https://raw.githubusercontent.com/randriksen/family-calendar/main/public/icons/icon-192.svg</Icon>
+  <TemplateURL>https://raw.githubusercontent.com/randriksen/family-calendar/main/unraid-template.xml</TemplateURL>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DonateText/>
+  <DonateLink/>
+
+  <!-- Port -->
+  <Config
+    Name="WebUI Port"
+    Target="3000"
+    Default="3000"
+    Mode="tcp"
+    Description="Port for the web interface"
+    Type="Port"
+    Display="always"
+    Required="true"
+    Mask="false">3000</Config>
+
+  <!-- Data volume -->
+  <Config
+    Name="Data"
+    Target="/data"
+    Default="/mnt/user/appdata/family-calendar/data"
+    Mode="rw"
+    Description="Persistent storage for the SQLite database and uploaded .ics files"
+    Type="Path"
+    Display="always"
+    Required="true"
+    Mask="false">/mnt/user/appdata/family-calendar/data</Config>
+
+  <!-- Environment variables (advanced) -->
+  <Config
+    Name="Database Path"
+    Target="DATABASE_PATH"
+    Default="/data/calendar.db"
+    Mode=""
+    Description="Path inside the container where the SQLite database is stored"
+    Type="Variable"
+    Display="advanced"
+    Required="false"
+    Mask="false">/data/calendar.db</Config>
+
+  <Config
+    Name="Uploads Path"
+    Target="UPLOADS_PATH"
+    Default="/data/uploads"
+    Mode=""
+    Description="Path inside the container where uploaded .ics files are stored"
+    Type="Variable"
+    Display="advanced"
+    Required="false"
+    Mask="false">/data/uploads</Config>
+</Container>

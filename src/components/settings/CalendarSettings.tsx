@@ -303,6 +303,7 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
   const [editUrlValue, setEditUrlValue] = useState('');
   const [savingUrl, setSavingUrl] = useState(false);
   const [savingIntervalId, setSavingIntervalId] = useState<string | null>(null);
+  const [syncResult, setSyncResult] = useState<{ id: string; count: number; error?: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -459,12 +460,19 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
 
   const refreshSource = async (id: string) => {
     setRefreshingId(id);
+    setSyncResult(null);
     try {
       const res = await fetch(`/api/sources/${id}/refresh`, { method: 'POST' });
-      if (!res.ok) throw new Error('Refresh failed');
+      const data = await res.json();
+      if (!res.ok) {
+        setSyncResult({ id, count: 0, error: data.error || 'Refresh failed' });
+      } else {
+        setSyncResult({ id, count: data.count });
+        setTimeout(() => setSyncResult(r => r?.id === id ? null : r), 8000);
+      }
       onRefresh();
     } catch {
-      alert('Refresh failed');
+      setSyncResult({ id, count: 0, error: 'Network error' });
     } finally {
       setRefreshingId(null);
     }
@@ -749,6 +757,11 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
                 >
                   {refreshingId === source.id ? '...' : t.settings.calendars.refresh}
                 </button>
+                {syncResult?.id === source.id && (
+                  <span className={`text-xs font-medium ${syncResult.error ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                    {syncResult.error ? `Error: ${syncResult.error}` : `${syncResult.count} events`}
+                  </span>
+                )}
                 <button
                   onClick={() => deleteSource(source.id)}
                   className="px-2.5 py-1 text-xs text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
