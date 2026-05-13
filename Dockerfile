@@ -23,6 +23,15 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Standard OCI labels + Unraid-specific labels
+LABEL org.opencontainers.image.title="Family Calendar" \
+      org.opencontainers.image.description="Shared family calendar — aggregates iCal feeds from all family members into one wall-calendar view. Supports Google Calendar, iCloud, Outlook, and any iCal URL." \
+      org.opencontainers.image.url="https://github.com/randriksen/family-calendar" \
+      org.opencontainers.image.source="https://github.com/randriksen/family-calendar" \
+      net.unraid.docker.webui="http://[IP]:[PORT:3000]/" \
+      net.unraid.docker.icon="https://raw.githubusercontent.com/randriksen/family-calendar/main/public/icons/icon-192.svg" \
+      net.unraid.docker.overview="Shared family calendar that aggregates iCal feeds from all family members into one wall-calendar view. Supports Google Calendar, iCloud, Outlook, and any iCal URL. Events auto-sync on a configurable per-calendar schedule."
+
 # Install runtime deps for better-sqlite3
 RUN apk add --no-cache libc6-compat
 
