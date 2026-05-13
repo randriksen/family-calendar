@@ -271,6 +271,16 @@ function EventAssigner({
   );
 }
 
+const SYNC_INTERVAL_OPTIONS = [
+  { value: 30, label: '30 min' },
+  { value: 60, label: '1 hour' },
+  { value: 120, label: '2 hours' },
+  { value: 240, label: '4 hours' },
+  { value: 480, label: '8 hours' },
+  { value: 720, label: '12 hours' },
+  { value: 1440, label: '24 hours' },
+];
+
 export default function CalendarSettings({ people, sources, t, onRefresh }: CalendarSettingsProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addPersonIds, setAddPersonIds] = useState<string[]>(people[0] ? [people[0].id] : []);
@@ -278,6 +288,7 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
   const [addType, setAddType] = useState<'ical_url' | 'ical_file'>('ical_url');
   const [addUrl, setAddUrl] = useState('');
   const [addColor, setAddColor] = useState('');
+  const [addSyncInterval, setAddSyncInterval] = useState(240);
   const [uploading, setUploading] = useState(false);
   const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
@@ -291,6 +302,7 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
   const [editUrlId, setEditUrlId] = useState<string | null>(null);
   const [editUrlValue, setEditUrlValue] = useState('');
   const [savingUrl, setSavingUrl] = useState(false);
+  const [savingIntervalId, setSavingIntervalId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -338,6 +350,7 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
         person_ids: addPersonIds,
         name: addName.trim(),
         type: addType,
+        sync_interval_minutes: addSyncInterval,
       };
       if (addType === 'ical_url') body.url = addUrl.trim();
       if (addType === 'ical_file') body.file_path = uploadedFilePath!;
@@ -360,6 +373,7 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
       setAddName('');
       setAddUrl('');
       setAddColor('');
+      setAddSyncInterval(240);
       setUploadedFilePath(null);
       setUploadedFileName(null);
       setAddPersonIds(people[0] ? [people[0].id] : []);
@@ -411,6 +425,22 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
       alert('Failed to save URL');
     } finally {
       setSavingUrl(false);
+    }
+  };
+
+  const saveSourceInterval = async (sourceId: string, minutes: number) => {
+    setSavingIntervalId(sourceId);
+    try {
+      await fetch(`/api/sources/${sourceId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sync_interval_minutes: minutes }),
+      });
+      onRefresh();
+    } catch {
+      // silently ignore — UI already shows the selected value
+    } finally {
+      setSavingIntervalId(null);
     }
   };
 
@@ -591,6 +621,21 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t.settings.calendars.syncInterval}
+              </label>
+              <select
+                value={addSyncInterval}
+                onChange={e => setAddSyncInterval(parseInt(e.target.value, 10))}
+                className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {SYNC_INTERVAL_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
@@ -641,6 +686,17 @@ export default function CalendarSettings({ people, sources, t, onRefresh }: Cale
                   </span>
                   <span className="text-xs text-gray-400 dark:text-gray-500">{t.settings.calendars.lastFetched}:</span>
                   <LastFetched dateStr={source.last_fetched_at} t={t} />
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{t.settings.calendars.syncInterval}:</span>
+                  <select
+                    value={source.sync_interval_minutes ?? 240}
+                    disabled={savingIntervalId === source.id}
+                    onChange={e => saveSourceInterval(source.id, parseInt(e.target.value, 10))}
+                    className="text-xs border border-gray-200 dark:border-gray-600 rounded px-1.5 py-0.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {SYNC_INTERVAL_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">

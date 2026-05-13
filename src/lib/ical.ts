@@ -240,6 +240,29 @@ export async function refreshAllSources(): Promise<{ total: number; errors: numb
   return { total, errors };
 }
 
+export async function refreshDueSources(): Promise<{ total: number; errors: number; skipped: number }> {
+  const sources = getSources() as CalendarSource[];
+  const now = Date.now();
+  let total = 0;
+  let errors = 0;
+  let skipped = 0;
+  for (const source of sources) {
+    const intervalMs = (source.sync_interval_minutes ?? 240) * 60 * 1000;
+    const lastFetched = source.last_fetched_at ? new Date(source.last_fetched_at).getTime() : 0;
+    if (lastFetched > 0 && now - lastFetched < intervalMs) {
+      skipped++;
+      continue;
+    }
+    try {
+      const result = await refreshSource(source);
+      total += result.count;
+    } catch {
+      errors++;
+    }
+  }
+  return { total, errors, skipped };
+}
+
 export async function refreshSourceById(sourceId: string): Promise<{ count: number }> {
   const source = getSourceById(sourceId) as CalendarSource | null;
   if (!source) throw new Error(`Source not found: ${sourceId}`);

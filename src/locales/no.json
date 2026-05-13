@@ -106,7 +106,8 @@
       "allPeople": "Alle (standard)",
       "noEventsToAssign": "Ingen hendelser funnet for denne kalenderen",
       "syncFirst": "Synkroniser kalenderen først for å se hendelser",
-      "loadingEvents": "Laster hendelser..."
+      "loadingEvents": "Laster hendelser...",
+      "syncInterval": "Synkroniser hvert"
     },
     "display": {
       "title": "Visningsinnstillinger",

@@ -1,5 +1,5 @@
 import { getSetting } from './db';
-import { refreshAllSources } from './ical';
+import { refreshDueSources } from './ical';
 
 let schedulerInterval: ReturnType<typeof setInterval> | null = null;
 let isRunning = false;
@@ -8,9 +8,9 @@ async function runRefresh() {
   if (isRunning) return;
   isRunning = true;
   try {
-    console.log('[scheduler] Starting calendar refresh...');
-    const result = await refreshAllSources();
-    console.log(`[scheduler] Refresh complete: ${result.total} events, ${result.errors} errors`);
+    console.log('[scheduler] Checking for due calendar syncs...');
+    const result = await refreshDueSources();
+    console.log(`[scheduler] Sync check complete: ${result.total} events refreshed, ${result.skipped} up-to-date, ${result.errors} errors`);
   } catch (err) {
     console.error('[scheduler] Refresh failed:', err);
   } finally {
