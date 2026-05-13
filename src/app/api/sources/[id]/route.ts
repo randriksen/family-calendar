@@ -40,6 +40,11 @@ export async function PUT(
       updates.person_ids = body.person_ids;
     }
 
+    if (body.sync_interval_minutes !== undefined) {
+      const interval = parseInt(body.sync_interval_minutes, 10);
+      if (!isNaN(interval) && interval > 0) updates.sync_interval_minutes = interval;
+    }
+
     updateSource(params.id, updates);
     return NextResponse.json({ success: true });
   } catch (err) {

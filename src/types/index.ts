@@ -16,6 +16,7 @@ export interface CalendarSource {
   file_path?: string | null;
   color?: string | null;
   last_fetched_at?: string | null;
+  sync_interval_minutes: number;
 }
 
 export interface CalendarEvent {
@@ -181,6 +182,7 @@ export interface LocaleData {
       noEventsToAssign: string;
       syncFirst: string;
       loadingEvents: string;
+      syncInterval: string;
     };
     display: {
       title: string;

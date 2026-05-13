@@ -106,7 +106,8 @@
       "allPeople": "All (default)",
       "noEventsToAssign": "No events found for this calendar",
       "syncFirst": "Sync calendar first to see events",
-      "loadingEvents": "Loading events..."
+      "loadingEvents": "Loading events...",
+      "syncInterval": "Sync every"
     },
     "display": {
       "title": "Display Settings",

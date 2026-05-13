@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, type, url, file_path, color } = body;
+    const { name, type, url, file_path, color, sync_interval_minutes } = body;
 
     // Accept person_ids (array) or person_id (legacy single value)
     let person_ids: string[] = [];
@@ -47,7 +47,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'file_path is required for ical_file type' }, { status: 400 });
     }
 
-    const id = createSource({ name: name.trim(), type, url, file_path, color, person_ids });
+    const intervalMinutes = sync_interval_minutes !== undefined ? parseInt(sync_interval_minutes, 10) : 240;
+    const id = createSource({ name: name.trim(), type, url, file_path, color, person_ids, sync_interval_minutes: isNaN(intervalMinutes) ? 240 : intervalMinutes });
     return NextResponse.json({ id }, { status: 201 });
   } catch (err) {
     console.error('[api/sources] POST error:', err);

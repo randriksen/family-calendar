@@ -124,6 +124,12 @@ function initSchema(db: Database.Database): void {
     db.exec('CREATE INDEX IF NOT EXISTS idx_events_ical_uid ON events(source_id, ical_uid)');
   }
 
+  // Add sync_interval_minutes column if missing (migration for existing DBs)
+  const sourceCols2 = db.prepare('PRAGMA table_info(calendar_sources)').all() as Array<{ name: string }>;
+  if (!sourceCols2.find(c => c.name === 'sync_interval_minutes')) {
+    db.exec('ALTER TABLE calendar_sources ADD COLUMN sync_interval_minutes INTEGER NOT NULL DEFAULT 240');
+  }
+
   // Add photo_url column to people if missing
   const peopleCols = db.prepare('PRAGMA table_info(people)').all() as Array<{ name: string }>;
   if (!peopleCols.find(c => c.name === 'photo_url')) {
@@ -265,13 +271,15 @@ export function createSource(data: {
   file_path?: string;
   color?: string;
   person_ids: string[];
+  sync_interval_minutes?: number;
 }) {
   const db = getDb();
   const id = uuidv4();
   const primaryPersonId = data.person_ids[0] ?? null;
+  const syncInterval = data.sync_interval_minutes ?? 240;
   db.prepare(
-    'INSERT INTO calendar_sources (id, person_id, name, type, url, file_path, color) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).run(id, primaryPersonId, data.name, data.type, data.url ?? null, data.file_path ?? null, data.color ?? null);
+    'INSERT INTO calendar_sources (id, person_id, name, type, url, file_path, color, sync_interval_minutes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(id, primaryPersonId, data.name, data.type, data.url ?? null, data.file_path ?? null, data.color ?? null, syncInterval);
   setSourcePeople(id, data.person_ids);
   return id;
 }
@@ -283,6 +291,7 @@ export function updateSource(id: string, updates: Partial<{
   color: string;
   last_fetched_at: string;
   person_ids: string[];
+  sync_interval_minutes: number;
 }>) {
   const db = getDb();
   const { person_ids, ...rest } = updates;
