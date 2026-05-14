@@ -16,6 +16,7 @@ interface EventDetailModalProps {
   timezone: string;
   onClose: () => void;
   onAssign: (sourceId: string, icalUid: string, personIds: string[]) => Promise<void>;
+  onEventsChanged: () => void;
 }
 
 function getTextColor(hex: string): string {
@@ -34,11 +35,13 @@ function fmtDate(dateStr: string, allDay: boolean, dateFormat: string, timezone:
 }
 
 export default function EventDetailModal({
-  event, allEvents, sources, people, t, dateFormat, timezone, onClose, onAssign,
+  event, allEvents, sources, people, t, dateFormat, timezone, onClose, onAssign, onEventsChanged,
 }: EventDetailModalProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [checkResult, setCheckResult] = useState<'exists' | 'removed' | 'error' | null>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
 
   const source = sources.find(s => s.id === event.source_id);
@@ -80,6 +83,32 @@ export default function EventDetailModal({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  const checkEvent = async () => {
+    if (!event.ical_uid || !event.source_id) return;
+    setChecking(true);
+    setCheckResult(null);
+    try {
+      const res = await fetch(`/api/sources/${event.source_id}/check-event`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ical_uid: event.ical_uid }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setCheckResult('error'); return; }
+      if (data.removed) {
+        setCheckResult('removed');
+        onEventsChanged();
+        setTimeout(onClose, 1500);
+      } else {
+        setCheckResult('exists');
+      }
+    } catch {
+      setCheckResult('error');
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const save = async () => {
     if (!event.ical_uid) return;
@@ -166,7 +195,7 @@ export default function EventDetailModal({
             </Row>
           )}
 
-          {/* Source */}
+          {/* Source + check button */}
           {source && (
             <Row icon={
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +203,27 @@ export default function EventDetailModal({
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
               </svg>
             }>
-              {source.name}
+              <span className="flex items-center gap-2 flex-wrap">
+                {source.name}
+                {event.ical_uid && (
+                  <button
+                    onClick={checkEvent}
+                    disabled={checking}
+                    className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-orange-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors disabled:opacity-50"
+                  >
+                    {checking ? 'Checking…' : 'Check if still exists'}
+                  </button>
+                )}
+                {checkResult === 'exists' && (
+                  <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">✓ Still in source</span>
+                )}
+                {checkResult === 'removed' && (
+                  <span className="text-[10px] text-orange-500 font-medium">Removed — no longer in source</span>
+                )}
+                {checkResult === 'error' && (
+                  <span className="text-[10px] text-red-500 font-medium">Check failed</span>
+                )}
+              </span>
             </Row>
           )}
         </div>

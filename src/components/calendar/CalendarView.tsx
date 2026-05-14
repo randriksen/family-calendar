@@ -400,6 +400,7 @@ export default function CalendarView({
           timezone={timezone}
           onClose={() => setSelectedEvent(null)}
           onAssign={handleEventAssign}
+          onEventsChanged={() => fetchEvents(view, date)}
         />
       )}
 
