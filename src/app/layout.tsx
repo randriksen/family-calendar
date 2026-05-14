@@ -11,7 +11,8 @@ export const metadata: Metadata = {
     title: 'Family Calendar',
   },
   icons: {
-    apple: '/icons/icon-192.png',
+    icon: '/icons/icon-192.svg',
+    apple: '/icons/icon-192.svg',
   },
 };
 
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
         <meta name="mobile-web-app-capable" content="yes" />
         {/* Prevent dark-mode flash on load */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark');}})();` }} />
