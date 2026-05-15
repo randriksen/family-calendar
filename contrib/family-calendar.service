@@ -1,0 +1,21 @@
+[Unit]
+Description=Family Calendar
+After=network.target
+
+[Service]
+Type=simple
+User=family-calendar
+Group=family-calendar
+WorkingDirectory=/opt/family-calendar
+ExecStart=/opt/family-calendar/node_modules/.bin/next start --hostname 0.0.0.0
+Restart=on-failure
+RestartSec=10
+
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=0.0.0.0
+Environment=DATABASE_PATH=/opt/family-calendar/data/calendar.db
+Environment=UPLOADS_PATH=/opt/family-calendar/data/uploads
+
+[Install]
+WantedBy=multi-user.target

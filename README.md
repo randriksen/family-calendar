@@ -71,6 +71,56 @@ docker run -d \
   family-calendar
 ```
 
+## Proxmox LXC
+
+Docker has compatibility issues with some Proxmox VE kernels (AppArmor/runc). Running inside an LXC container with Node.js directly avoids this entirely.
+
+### 1. Create the LXC container
+
+In the Proxmox web UI, create a new LXC container using the **Debian 12** template. Recommended specs: 1 CPU, 512 MB RAM, 4 GB disk. Enable **nesting** if you want to run Docker inside the LXC later, but it's not required here.
+
+Start the container and open a shell.
+
+### 2. Install Node.js 20
+
+```bash
+apt-get update && apt-get install -y curl git build-essential python3
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
+```
+
+### 3. Install the app
+
+```bash
+useradd -r -m -d /opt/family-calendar -s /bin/bash family-calendar
+git clone https://github.com/randriksen/family-calendar.git /opt/family-calendar
+cd /opt/family-calendar
+npm install
+npm run build
+mkdir -p /opt/family-calendar/data/uploads
+chown -R family-calendar:family-calendar /opt/family-calendar/data
+```
+
+### 4. Install the systemd service
+
+```bash
+cp /opt/family-calendar/contrib/family-calendar.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now family-calendar
+```
+
+The app will be available at **http://\<LXC-IP\>:3000** and will start automatically on boot.
+
+### Updating
+
+```bash
+cd /opt/family-calendar
+git pull
+npm install
+npm run build
+systemctl restart family-calendar
+```
+
 ## Environment Variables
 
 | Variable | Default | Description |
