@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { eachDayOfInterval, addDays, isToday, getISOWeek, format } from 'date-fns';
 import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getHoliday } from '@/lib/i18n';
@@ -8,6 +8,9 @@ import DayCell, { type EventDisplay } from './DayCell';
 import { computeEventLanes, computeDaySingleSlots } from './calendarUtils';
 import { toTzDateStr } from '@/lib/tz';
 import { hexWithAlpha } from '@/lib/colorUtils';
+
+const INITIAL_PAST = 30;
+const LOAD_MORE = 30;
 
 interface RollingViewProps {
   date: Date;
@@ -63,10 +66,21 @@ function buildEventDisplays(events: CalendarEvent[], timezone: string): Record<s
   return map;
 }
 
-export default function RollingView({ date, events, sources, people, t, locale, dateFormat, timezone, rollingDays, onEventClick, singlePersonId }: RollingViewProps) {
+export default function RollingView({ date, events, sources, people, t, locale, timezone, rollingDays, onEventClick, singlePersonId }: RollingViewProps) {
+  const [extraPast, setExtraPast] = useState(INITIAL_PAST);
+  const [extraFuture, setExtraFuture] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const prevScrollHeight = useRef(0);
+  const isPrepending = useRef(false);
+  const anchorStr = format(date, 'yyyy-MM-dd');
+
   const days = useMemo(
-    () => eachDayOfInterval({ start: date, end: addDays(date, rollingDays - 1) }),
-    [date.getTime(), rollingDays]
+    () => eachDayOfInterval({
+      start: addDays(date, -extraPast),
+      end: addDays(date, rollingDays - 1 + extraFuture),
+    }),
+    [date.getTime(), rollingDays, extraPast, extraFuture]
   );
 
   const eventsByDate = useMemo(() => buildEventDisplays(events, timezone), [events, timezone]);
@@ -76,6 +90,59 @@ export default function RollingView({ date, events, sources, people, t, locale, 
     ? people.filter(p => p.id === singlePersonId)
     : people;
   const gridCols = singlePersonId ? `3.5rem 1fr` : `3.5rem repeat(${Math.max(displayedPeople.length, 1)}, minmax(0, 1fr))`;
+
+  // Scroll to anchor date when date prop changes (Today / Prev / Next)
+  useEffect(() => {
+    anchorRef.current?.scrollIntoView({ block: 'start' });
+  }, [date.getTime()]);
+
+  // After prepending past days, restore scroll position so view doesn't jump
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    if (isPrepending.current && container && prevScrollHeight.current > 0) {
+      container.scrollTop += container.scrollHeight - prevScrollHeight.current;
+      prevScrollHeight.current = 0;
+      isPrepending.current = false;
+    }
+  }, [extraPast]);
+
+  // Top sentinel: load more past days when user scrolls near the top
+  const topSentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const sentinel = topSentinelRef.current;
+    const container = scrollRef.current;
+    if (!sentinel || !container) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isPrepending.current) {
+          isPrepending.current = true;
+          prevScrollHeight.current = container.scrollHeight;
+          setExtraPast(p => p + LOAD_MORE);
+        }
+      },
+      { root: container, rootMargin: '200px 0px 0px 0px', threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
+  // Bottom sentinel: load more future days when user scrolls near the bottom
+  const bottomSentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const sentinel = bottomSentinelRef.current;
+    const container = scrollRef.current;
+    if (!sentinel || !container) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setExtraFuture(f => f + LOAD_MORE);
+        }
+      },
+      { root: container, rootMargin: '0px 0px 200px 0px', threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   let lastWeekNum = -1;
   let lastMonth = -1;
@@ -111,7 +178,8 @@ export default function RollingView({ date, events, sources, people, t, locale, 
       </div>
 
       {/* Day rows */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto" ref={scrollRef}>
+        <div ref={topSentinelRef} />
         {days.map((day, dayIdx) => {
           const dateStr = format(day, 'yyyy-MM-dd');
           const today = isToday(day);
@@ -125,7 +193,6 @@ export default function RollingView({ date, events, sources, people, t, locale, 
           const dayLabel = getDayLabel(day, t);
           const isEvenRow = dayIdx % 2 === 0;
 
-          // Compute shared single-day slots across all persons for alignment
           const allSingleForDay = Object.values(eventsByDate[dateStr] ?? {})
             .flat()
             .filter(ed => ed.position === 'single')
@@ -133,7 +200,7 @@ export default function RollingView({ date, events, sources, people, t, locale, 
           const { slots: singleDaySlots, total: totalSingleSlots } = computeDaySingleSlots(allSingleForDay);
 
           return (
-            <div key={dateStr}>
+            <div key={dateStr} ref={dateStr === anchorStr ? anchorRef : undefined}>
               {isMonthBoundary && (
                 <div
                   className="grid bg-blue-50 dark:bg-blue-900/20 border-y border-blue-200 dark:border-blue-800"
@@ -156,7 +223,6 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                 }`}
                 style={{ gridTemplateColumns: gridCols }}
               >
-                {/* Date label */}
                 <div className={`px-1 py-1 flex flex-col items-center justify-start border-r border-gray-100 dark:border-gray-800 ${
                   today ? 'text-blue-600' : 'text-gray-500 dark:text-gray-400'
                 }`}>
@@ -176,7 +242,6 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                   )}
                 </div>
 
-                {/* Per-person cells */}
                 {displayedPeople.length > 0 ? (
                   displayedPeople.map(person => {
                     const personDisplays = eventsByDate[dateStr]?.[person.id] || [];
@@ -209,6 +274,7 @@ export default function RollingView({ date, events, sources, people, t, locale, 
             </div>
           );
         })}
+        <div ref={bottomSentinelRef} />
       </div>
     </div>
   );

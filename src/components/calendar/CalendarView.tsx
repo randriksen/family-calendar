@@ -54,7 +54,7 @@ function getDateRange(view: ViewType, date: Date, rollingDays: number): { start:
     case 'week':
       return { start: startOfWeek(date, { weekStartsOn: 1 }), end: endOfWeek(date, { weekStartsOn: 1 }) };
     case 'rolling':
-      return { start: date, end: addDays(date, rollingDays - 1) };
+      return { start: addDays(date, -90), end: addDays(date, rollingDays + 90) };
     case 'agenda':
       return { start: date, end: addDays(date, 90) };
     default:
