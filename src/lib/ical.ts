@@ -70,25 +70,27 @@ function isTimedMidnightAllDay(start: Date, end: Date | null): boolean {
   return durationMs >= min && durationMs <= max && (isUtcMidnight(start) || isUtcMidnight(end));
 }
 
-// For all-day events: return UTC midnight ISO string for the given date's UTC calendar day.
+// For all-day events: return a YYYY-MM-DDT00:00:00.000Z string for the given calendar date.
+// node-ical creates VALUE=DATE events as new Date(y, m, d) = LOCAL midnight, so use local
+// time methods here so the date string matches the calendar date on any server timezone.
 function allDayStartStr(date: Date): string {
-  const y = date.getUTCFullYear();
-  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(date.getUTCDate()).padStart(2, '0');
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}T00:00:00.000Z`;
 }
 
-// For all-day events: DTEND is exclusive (day after last day), so subtract one UTC day.
-// Store as UTC midnight of the inclusive last day so .slice(0,10) always gives the right date.
+// For all-day events: DTEND is exclusive (day after last day), so subtract one local day.
+// Store as YYYY-MM-DDT00:00:00.000Z of the inclusive last day so .slice(0,10) is correct.
 function allDayEndStr(exclusiveEnd: Date): string {
-  const lastDay = new Date(Date.UTC(
-    exclusiveEnd.getUTCFullYear(),
-    exclusiveEnd.getUTCMonth(),
-    exclusiveEnd.getUTCDate() - 1,
-  ));
-  const y = lastDay.getUTCFullYear();
-  const m = String(lastDay.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(lastDay.getUTCDate()).padStart(2, '0');
+  const lastDay = new Date(
+    exclusiveEnd.getFullYear(),
+    exclusiveEnd.getMonth(),
+    exclusiveEnd.getDate() - 1,
+  );
+  const y = lastDay.getFullYear();
+  const m = String(lastDay.getMonth() + 1).padStart(2, '0');
+  const d = String(lastDay.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}T00:00:00.000Z`;
 }
 
@@ -172,18 +174,19 @@ function parseEvents(
           ? (() => {
               if (!event.end) return 1;
               if (isDateOnlyAllDay) {
-                const startUtcDay = Date.UTC(
-                  event.start.getUTCFullYear(),
-                  event.start.getUTCMonth(),
-                  event.start.getUTCDate(),
+                // node-ical VALUE=DATE → local midnight; use local methods for correct day count
+                const startLocalDay = Date.UTC(
+                  event.start.getFullYear(),
+                  event.start.getMonth(),
+                  event.start.getDate(),
                 );
-                const endUtcDay = Date.UTC(
-                  event.end.getUTCFullYear(),
-                  event.end.getUTCMonth(),
-                  event.end.getUTCDate(),
+                const endLocalDay = Date.UTC(
+                  event.end.getFullYear(),
+                  event.end.getMonth(),
+                  event.end.getDate(),
                 );
                 // DATE DTEND is exclusive. 1 means single-day all-day event.
-                return Math.max(Math.round((endUtcDay - startUtcDay) / 86400000), 1);
+                return Math.max(Math.round((endLocalDay - startLocalDay) / 86400000), 1);
               }
               const durationMs = event.end.getTime() - event.start.getTime();
               return Math.max(Math.round(durationMs / 86400000), 1);
@@ -242,11 +245,11 @@ function parseEvents(
 
     const startDate = allDay ? allDayStartStr(start) : toISOString(start);
     const endDate: string | null = allDay
-      ? allDayEndStr(end ?? new Date(Date.UTC(
-          start.getUTCFullYear(),
-          start.getUTCMonth(),
-          start.getUTCDate() + 1,
-        )))
+      ? allDayEndStr(end ?? new Date(
+          start.getFullYear(),
+          start.getMonth(),
+          start.getDate() + 1,
+        ))
       : (end ? toISOString(end) : null);
 
     for (const personId of personIds) {

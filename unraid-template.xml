@@ -10,7 +10,7 @@
   <Overview>Shared family calendar that aggregates iCal feeds from all family members into one wall-calendar view.&#xD;&#xA;&#xD;&#xA;Supports Google Calendar, iCloud, Outlook, and any iCal URL. Events auto-sync on a configurable per-calendar schedule (default every 4 hours). Includes month, week, rolling, and agenda views with per-person color coding.</Overview>
   <Category>Productivity: Tools:</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
-  <Icon>https://raw.githubusercontent.com/randriksen/family-calendar/main/public/icons/icon-192.png</Icon>
+  <Icon>https://raw.githubusercontent.com/randriksen/family-calendar/main/public/icons/icon-512.png?v=2</Icon>
   <TemplateURL>https://raw.githubusercontent.com/randriksen/family-calendar/main/unraid-template.xml</TemplateURL>
   <ExtraParams/>
   <PostArgs/>
