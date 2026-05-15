@@ -9,7 +9,7 @@ import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types'
 import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
 import { computeEventLanes, computeDaySingleSlots } from './calendarUtils';
-import { toTzDateStr } from '@/lib/tz';
+import { getEventDateRangeKeys } from '@/lib/tz';
 import { hexWithAlpha } from '@/lib/colorUtils';
 
 interface MonthViewProps {
@@ -64,13 +64,7 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
     const map: Record<string, Record<string, EventDisplay[]>> = {};
 
     for (const event of events) {
-      const startStr = event.all_day
-        ? event.start_date.slice(0, 10)
-        : toTzDateStr(new Date(event.start_date), timezone);
-      const endIso = event.end_date || event.start_date;
-      const endStr = event.all_day
-        ? endIso.slice(0, 10)
-        : toTzDateStr(new Date(endIso), timezone);
+      const { startStr, endStr } = getEventDateRangeKeys(event, timezone);
       const isMultiDay = startStr !== endStr;
 
       const cur = new Date(startStr + 'T00:00:00');

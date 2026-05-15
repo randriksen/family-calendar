@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getEventColor } from './EventBadge';
-import { formatTzDateTime, formatTzTime, toTzDateStr } from '@/lib/tz';
+import { formatTzTime, toTzDateStr } from '@/lib/tz';
 
 interface EventDetailModalProps {
   event: CalendarEvent;
@@ -28,25 +28,16 @@ function getTextColor(hex: string): string {
 
 function fmtDate(dateStr: string, allDay: boolean, dateFormat: string, timezone: string): string {
   try {
-    if (allDay) return formatTzDateTime(dateStr, timezone, true);
+    if (allDay) {
+      // Use UTC date components so any storage format (T00:00Z, T23:59Z, etc.)
+      // always yields the correct calendar date without timezone conversion.
+      const d = new Date(dateStr);
+      const localDate = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+      return format(localDate, dateFormat);
+    }
     const dateOnly = format(new Date(dateStr), dateFormat);
     return `${dateOnly} ${formatTzTime(dateStr, timezone)}`;
   } catch { return dateStr; }
-}
-
-function normalizeAllDayEndForDisplay(endDate: string): string {
-  const end = new Date(endDate);
-  if (Number.isNaN(end.getTime())) return endDate;
-  // All-day ranges are commonly encoded with exclusive midnight end times.
-  if (
-    end.getUTCHours() === 0
-    && end.getUTCMinutes() === 0
-    && end.getUTCSeconds() === 0
-    && end.getUTCMilliseconds() === 0
-  ) {
-    return new Date(end.getTime() - 60000).toISOString();
-  }
-  return endDate;
 }
 
 export default function EventDetailModal({
@@ -140,13 +131,14 @@ export default function EventDetailModal({
     }
   };
 
-  const displayEndDate = event.end_date
-    ? (event.all_day ? normalizeAllDayEndForDisplay(event.end_date) : event.end_date)
-    : null;
+  const displayEndDate = event.end_date || null;
   const dateStr = fmtDate(event.start_date, !!event.all_day, dateFormat, timezone);
   const endStr = displayEndDate ? fmtDate(displayEndDate, !!event.all_day, dateFormat, timezone) : null;
-  const isMultiDay = !!displayEndDate
-    && toTzDateStr(new Date(event.start_date), timezone) !== toTzDateStr(new Date(displayEndDate), timezone);
+  const isMultiDay = !!displayEndDate && (
+    event.all_day
+      ? event.start_date.slice(0, 10) !== displayEndDate.slice(0, 10)
+      : toTzDateStr(new Date(event.start_date), timezone) !== toTzDateStr(new Date(displayEndDate), timezone)
+  );
 
   return (
     <div

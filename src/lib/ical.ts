@@ -78,8 +78,8 @@ function allDayStartStr(date: Date): string {
   return `${y}-${m}-${d}T00:00:00.000Z`;
 }
 
-// For all-day events: DTEND is exclusive (day after last day), so subtract one UTC day
-// and set end to 23:59 UTC on the final day.
+// For all-day events: DTEND is exclusive (day after last day), so subtract one UTC day.
+// Store as UTC midnight of the inclusive last day so .slice(0,10) always gives the right date.
 function allDayEndStr(exclusiveEnd: Date): string {
   const lastDay = new Date(Date.UTC(
     exclusiveEnd.getUTCFullYear(),
@@ -89,7 +89,7 @@ function allDayEndStr(exclusiveEnd: Date): string {
   const y = lastDay.getUTCFullYear();
   const m = String(lastDay.getUTCMonth() + 1).padStart(2, '0');
   const d = String(lastDay.getUTCDate()).padStart(2, '0');
-  return `${y}-${m}-${d}T23:59:00.000Z`;
+  return `${y}-${m}-${d}T00:00:00.000Z`;
 }
 
 // Returns the UTC offset of tzid at the given UTC instant, in milliseconds.
@@ -163,13 +163,15 @@ function parseEvents(
 
     if (event.rrule) {
       try {
-        const allDay = isAllDay(event.start) || isTimedMidnightAllDay(event.start, event.end || null);
+        const isDateOnlyAllDay = isAllDay(event.start);
+        const isTimedAllDay = !isDateOnlyAllDay && isTimedMidnightAllDay(event.start, event.end || null);
+        const allDay = isDateOnlyAllDay || isTimedAllDay;
         const tzid = !allDay ? (event.start as ical.DateWithTimeZone).tz : undefined;
         const needsTzFix = !!tzid && tzid !== 'UTC' && tzid !== 'Etc/UTC';
         const allDaySpanDays = allDay
           ? (() => {
               if (!event.end) return 1;
-              if (isAllDay(event.start)) {
+              if (isDateOnlyAllDay) {
                 const startUtcDay = Date.UTC(
                   event.start.getUTCFullYear(),
                   event.start.getUTCMonth(),
@@ -234,7 +236,9 @@ function parseEvents(
 
     const start = event.start;
     const end = event.end || null;
-    const allDay = isAllDay(start) || isTimedMidnightAllDay(start, end);
+    const isDateOnlyAllDay = isAllDay(start);
+    const isTimedAllDay = !isDateOnlyAllDay && isTimedMidnightAllDay(start, end);
+    const allDay = isDateOnlyAllDay || isTimedAllDay;
 
     const startDate = allDay ? allDayStartStr(start) : toISOString(start);
     const endDate: string | null = allDay

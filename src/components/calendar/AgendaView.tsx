@@ -5,7 +5,7 @@ import { isToday, isTomorrow, format } from 'date-fns';
 import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getHoliday, getMonthName } from '@/lib/i18n';
 import { getEventColor } from './EventBadge';
-import { toTzDateStr, formatTzTime } from '@/lib/tz';
+import { getEventDateRangeKeys, formatTzTime } from '@/lib/tz';
 
 interface AgendaViewProps {
   date: Date;
@@ -63,12 +63,7 @@ export default function AgendaView({ date, events, sources, people, t, locale, t
     const map = new Map<string, DayGroup>();
 
     for (const event of filteredEvents) {
-      const startStr = event.all_day
-        ? event.start_date.slice(0, 10)
-        : toTzDateStr(new Date(event.start_date), timezone);
-      const endStr = event.end_date
-        ? (event.all_day ? event.end_date.slice(0, 10) : toTzDateStr(new Date(event.end_date), timezone))
-        : startStr;
+      const { startStr, endStr } = getEventDateRangeKeys(event, timezone);
       const start = new Date(startStr + 'T00:00:00');
       const end = new Date(endStr + 'T00:00:00');
       const cur = new Date(start);
