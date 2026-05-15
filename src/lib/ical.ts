@@ -37,6 +37,61 @@ function isAllDay(date: ical.DateWithTimeZone | Date): boolean {
   return (date as unknown as { dateOnly?: boolean }).dateOnly === true;
 }
 
+function isUtcMidnight(date: Date): boolean {
+  return date.getUTCHours() === 0
+    && date.getUTCMinutes() === 0
+    && date.getUTCSeconds() === 0
+    && date.getUTCMilliseconds() === 0;
+}
+
+function isZeroMinuteSecond(date: Date): boolean {
+  return date.getUTCMinutes() === 0
+    && date.getUTCSeconds() === 0
+    && date.getUTCMilliseconds() === 0;
+}
+
+// Some providers encode all-day events as timed UTC midnight-to-midnight ranges.
+// Treat those as all-day to avoid timezone-shifted display times like 02:00.
+function isTimedMidnightAllDay(start: Date, end: Date | null): boolean {
+  if (!end) return false;
+  const durationMs = end.getTime() - start.getTime();
+  if (durationMs <= 0) return false;
+
+  // Exact midnight-aligned full-day ranges.
+  if (isUtcMidnight(start) && isUtcMidnight(end)) {
+    return durationMs >= 86400000 && durationMs % 86400000 === 0;
+  }
+
+  // Near full-day timed ranges (22-26h) frequently represent all-day events
+  // that were converted through timezone offsets.
+  if (!isZeroMinuteSecond(start) || !isZeroMinuteSecond(end)) return false;
+  const min = 22 * 60 * 60 * 1000;
+  const max = 26 * 60 * 60 * 1000;
+  return durationMs >= min && durationMs <= max && (isUtcMidnight(start) || isUtcMidnight(end));
+}
+
+// For all-day events: return UTC midnight ISO string for the given date's UTC calendar day.
+function allDayStartStr(date: Date): string {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}T00:00:00.000Z`;
+}
+
+// For all-day events: DTEND is exclusive (day after last day), so subtract one UTC day
+// and set end to 23:59 UTC on the final day.
+function allDayEndStr(exclusiveEnd: Date): string {
+  const lastDay = new Date(Date.UTC(
+    exclusiveEnd.getUTCFullYear(),
+    exclusiveEnd.getUTCMonth(),
+    exclusiveEnd.getUTCDate() - 1,
+  ));
+  const y = lastDay.getUTCFullYear();
+  const m = String(lastDay.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(lastDay.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}T23:59:00.000Z`;
+}
+
 // Returns the UTC offset of tzid at the given UTC instant, in milliseconds.
 // Positive means ahead of UTC (e.g. Europe/Berlin in CEST = +7_200_000).
 function tzOffsetMs(tzid: string, utcDate: Date): number {
@@ -108,9 +163,30 @@ function parseEvents(
 
     if (event.rrule) {
       try {
-        const allDay = isAllDay(event.start);
+        const allDay = isAllDay(event.start) || isTimedMidnightAllDay(event.start, event.end || null);
         const tzid = !allDay ? (event.start as ical.DateWithTimeZone).tz : undefined;
         const needsTzFix = !!tzid && tzid !== 'UTC' && tzid !== 'Etc/UTC';
+        const allDaySpanDays = allDay
+          ? (() => {
+              if (!event.end) return 1;
+              if (isAllDay(event.start)) {
+                const startUtcDay = Date.UTC(
+                  event.start.getUTCFullYear(),
+                  event.start.getUTCMonth(),
+                  event.start.getUTCDate(),
+                );
+                const endUtcDay = Date.UTC(
+                  event.end.getUTCFullYear(),
+                  event.end.getUTCMonth(),
+                  event.end.getUTCDate(),
+                );
+                // DATE DTEND is exclusive. 1 means single-day all-day event.
+                return Math.max(Math.round((endUtcDay - startUtcDay) / 86400000), 1);
+              }
+              const durationMs = event.end.getTime() - event.start.getTime();
+              return Math.max(Math.round(durationMs / 86400000), 1);
+            })()
+          : 0;
 
         const occurrences = event.rrule.between(windowStart, windowEnd, true);
         for (const occurrence of occurrences) {
@@ -126,6 +202,14 @@ function parseEvents(
             ? event.end.getTime() - event.start.getTime()
             : 0;
           const occurrenceEnd = duration > 0 ? new Date(start.getTime() + duration) : null;
+          const allDayStart = allDay ? allDayStartStr(start) : null;
+          const allDayEnd = allDay
+            ? allDayEndStr(new Date(Date.UTC(
+                start.getUTCFullYear(),
+                start.getUTCMonth(),
+                start.getUTCDate() + allDaySpanDays,
+              )))
+            : null;
 
           for (const personId of personIds) {
             results.push({
@@ -134,8 +218,8 @@ function parseEvents(
               source_id: sourceId,
               person_id: personId,
               title,
-              start_date: toISOString(start),
-              end_date: occurrenceEnd ? toISOString(occurrenceEnd) : null,
+              start_date: allDayStart ?? toISOString(start),
+              end_date: allDayEnd ?? (occurrenceEnd ? toISOString(occurrenceEnd) : null),
               all_day: allDay ? 1 : 0,
               location,
               description,
@@ -150,16 +234,16 @@ function parseEvents(
 
     const start = event.start;
     const end = event.end || null;
-    const allDay = isAllDay(start);
+    const allDay = isAllDay(start) || isTimedMidnightAllDay(start, end);
 
-    let endDate: string | null = null;
-    if (end) {
-      if (allDay) {
-        endDate = toISOString(new Date(end.getTime() - 1));
-      } else {
-        endDate = toISOString(end);
-      }
-    }
+    const startDate = allDay ? allDayStartStr(start) : toISOString(start);
+    const endDate: string | null = allDay
+      ? allDayEndStr(end ?? new Date(Date.UTC(
+          start.getUTCFullYear(),
+          start.getUTCMonth(),
+          start.getUTCDate() + 1,
+        )))
+      : (end ? toISOString(end) : null);
 
     for (const personId of personIds) {
       results.push({
@@ -168,7 +252,7 @@ function parseEvents(
         source_id: sourceId,
         person_id: personId,
         title,
-        start_date: toISOString(start),
+        start_date: startDate,
         end_date: endDate,
         all_day: allDay ? 1 : 0,
         location,

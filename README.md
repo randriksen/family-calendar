@@ -2,6 +2,16 @@
 
 A self-hosted family wall calendar that aggregates multiple iCal feeds into a single shared view. Each family member gets a color-coded column, events are rendered with smart vertical alignment across columns, and multi-day events appear as continuous ribbons.
 
+## Repository Notes
+
+- This repository is safe to publish: runtime data is excluded via `.gitignore` (`data/`, `.env*`, build output).
+- API documentation is maintained in `docs/API.md`.
+- Optional deployment helpers are documented in `contrib/README.md`.
+- Contribution guide: `CONTRIBUTING.md`.
+- Security policy: `SECURITY.md`.
+- Release summary: `RELEASE_NOTES.md`.
+- Maintainer checklist: `docs/MAINTAINER_CHECKLIST.md`.
+
 ## Features
 
 - **Multiple views** — Month, Week, Rolling (configurable day range), and Agenda
@@ -207,40 +217,39 @@ The SQLite database is created and migrated automatically on startup. No manual 
 
 ## API Reference
 
-### People
+Full API docs are available in `docs/API.md`.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/people` | List all people |
-| `POST` | `/api/people` | Create person `{ name, color }` |
-| `GET` | `/api/people/:id` | Get person |
-| `PUT` | `/api/people/:id` | Update person |
-| `DELETE` | `/api/people/:id` | Delete person |
-| `POST` | `/api/people/:id/photo` | Upload photo (multipart, JPEG/PNG/GIF/WebP) |
+### Quick Endpoint Index
 
-### Calendar Sources
+| Method | Endpoint |
+|---|---|
+| `GET` | `/api/people` |
+| `POST` | `/api/people` |
+| `GET` | `/api/people/:id` |
+| `PUT` | `/api/people/:id` |
+| `DELETE` | `/api/people/:id` |
+| `POST` | `/api/people/:id/photo` |
+| `GET` | `/api/sources` |
+| `POST` | `/api/sources` |
+| `GET` | `/api/sources/:id` |
+| `PUT` | `/api/sources/:id` |
+| `DELETE` | `/api/sources/:id` |
+| `POST` | `/api/sources/:id/refresh` |
+| `GET` | `/api/sources/:id/events` |
+| `GET` | `/api/sources/:id/overrides` |
+| `PUT` | `/api/sources/:id/overrides` |
+| `POST` | `/api/sources/:id/check-event` |
+| `GET` | `/api/events` |
+| `POST` | `/api/events/refresh` |
+| `GET` | `/api/settings` |
+| `PUT` | `/api/settings` |
+| `POST` | `/api/upload` |
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/sources` | List sources (`?person_id=X` to filter) |
-| `POST` | `/api/sources` | Create source `{ name, type, url\|file_path, person_ids[] }` |
-| `GET` | `/api/sources/:id` | Get source |
-| `PUT` | `/api/sources/:id` | Update source |
-| `DELETE` | `/api/sources/:id` | Delete source |
-| `POST` | `/api/sources/:id/refresh` | Sync this source now |
-| `GET` | `/api/sources/:id/events` | List parsed events (up to 300) |
-| `GET` | `/api/sources/:id/overrides` | Get event person overrides |
-| `PUT` | `/api/sources/:id/overrides` | Set event person overrides |
+## Public Release Checklist
 
-### Events & Settings
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/events?start=ISO&end=ISO` | Query events by date range |
-| `POST` | `/api/events/refresh` | Force refresh all sources |
-| `GET` | `/api/settings` | Get all settings |
-| `PUT` | `/api/settings` | Update settings (key-value object) |
-| `POST` | `/api/upload` | Upload `.ics` file |
+- Confirm no private data exists under `data/` before publishing (this folder is ignored, but check local copies).
+- If exposing publicly, protect the app with reverse-proxy auth (the API currently has no auth layer).
+- Review branding fields in `unraid-template.xml` and Docker labels if you fork/rename.
 
 ## Data Persistence
 

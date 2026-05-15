@@ -34,8 +34,13 @@ function getDayLabel(day: Date, t: LocaleData): string {
 function buildEventDisplays(events: CalendarEvent[], timezone: string): Record<string, Record<string, EventDisplay[]>> {
   const map: Record<string, Record<string, EventDisplay[]>> = {};
   for (const event of events) {
-    const startStr = toTzDateStr(new Date(event.start_date), timezone);
-    const endStr = toTzDateStr(new Date(event.end_date || event.start_date), timezone);
+    const startStr = event.all_day
+      ? event.start_date.slice(0, 10)
+      : toTzDateStr(new Date(event.start_date), timezone);
+    const endIso = event.end_date || event.start_date;
+    const endStr = event.all_day
+      ? endIso.slice(0, 10)
+      : toTzDateStr(new Date(endIso), timezone);
     const isMultiDay = startStr !== endStr;
     const cur = new Date(startStr + 'T00:00:00');
     const end = new Date(endStr + 'T00:00:00');

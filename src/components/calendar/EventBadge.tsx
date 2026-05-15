@@ -75,6 +75,7 @@ export function getEventColor(
 export default function EventBadge({ event, sources, people, timezone, compact = false, hideLocation = false, position = 'single', onClick }: EventBadgeProps) {
   const color = getEventColor(event, sources, people);
   const textColor = getTextColor(color);
+  const isSingleAllDay = position === 'single' && !!event.all_day;
 
   if (compact) {
     return (
@@ -118,13 +119,20 @@ export default function EventBadge({ event, sources, people, timezone, compact =
 
   return (
     <div
-      className={`flex flex-col px-1.5 py-0.5 ${roundedClass} text-xs font-medium w-full cursor-pointer hover:opacity-90 transition-opacity overflow-hidden`}
-      style={{ backgroundColor: color, color: textColor }}
+      className={`flex flex-col px-1.5 py-0.5 ${roundedClass} text-xs w-full cursor-pointer hover:opacity-90 transition-opacity overflow-hidden ${isSingleAllDay ? 'font-semibold shadow-sm' : 'font-medium'}`}
+      style={{
+        backgroundColor: color,
+        color: textColor,
+        border: isSingleAllDay ? '1px solid rgba(255,255,255,0.45)' : 'none',
+      }}
       title={[event.title, timeStr, event.location].filter(Boolean).join(' · ')}
       onClick={() => onClick?.(event)}
       onContextMenu={e => { e.preventDefault(); onClick?.(event); }}
     >
       <div className="flex items-center gap-1 overflow-hidden">
+        {isSingleAllDay && (
+          <span className="flex-shrink-0 uppercase tracking-wide text-[9px] font-bold opacity-90">All day</span>
+        )}
         {timeStr && <span className="flex-shrink-0 opacity-80 font-normal">{timeStr}</span>}
         <span className="truncate">{event.title}</span>
       </div>

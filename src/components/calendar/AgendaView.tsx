@@ -63,8 +63,12 @@ export default function AgendaView({ date, events, sources, people, t, locale, t
     const map = new Map<string, DayGroup>();
 
     for (const event of filteredEvents) {
-      const startStr = toTzDateStr(new Date(event.start_date), timezone);
-      const endStr = event.end_date ? toTzDateStr(new Date(event.end_date), timezone) : startStr;
+      const startStr = event.all_day
+        ? event.start_date.slice(0, 10)
+        : toTzDateStr(new Date(event.start_date), timezone);
+      const endStr = event.end_date
+        ? (event.all_day ? event.end_date.slice(0, 10) : toTzDateStr(new Date(event.end_date), timezone))
+        : startStr;
       const start = new Date(startStr + 'T00:00:00');
       const end = new Date(endStr + 'T00:00:00');
       const cur = new Date(start);
