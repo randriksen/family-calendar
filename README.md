@@ -1,5 +1,9 @@
 # Family Calendar
 
+<p align="center">
+  <img src="public/icons/icon-192.png" alt="Family Calendar logo" width="128" height="128" />
+</p>
+
 A self-hosted family wall calendar that aggregates multiple iCal feeds into a single shared view. Each family member gets a color-coded column, events are rendered with smart vertical alignment across columns, and multi-day events appear as continuous ribbons.
 
 ## Repository Notes
