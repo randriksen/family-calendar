@@ -1,0 +1,137 @@
+{
+  "app": {
+    "name": "Calendario Familiar",
+    "loading": "Cargando...",
+    "error": "Se ha producido un error"
+  },
+  "nav": {
+    "calendar": "Calendario",
+    "settings": "Ajustes",
+    "today": "Hoy",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "all": "Todos"
+  },
+  "views": {
+    "month": "Mes",
+    "week": "Semana",
+    "rolling": "Continuo",
+    "agenda": "Agenda"
+  },
+  "calendar": {
+    "weekNumber": "Sem",
+    "showFor": "Mostrar para",
+    "noEvents": "Sin eventos",
+    "holiday": "Festivo",
+    "allDay": "Todo el día",
+    "multiDay": "Varios días",
+    "continues": "cont."
+  },
+  "days": {
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miércoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "saturday": "Sábado",
+    "sunday": "Domingo",
+    "short": {
+      "monday": "Lun",
+      "tuesday": "Mar",
+      "wednesday": "Mié",
+      "thursday": "Jue",
+      "friday": "Vie",
+      "saturday": "Sáb",
+      "sunday": "Dom"
+    }
+  },
+  "months": {
+    "january": "Enero",
+    "february": "Febrero",
+    "march": "Marzo",
+    "april": "Abril",
+    "may": "Mayo",
+    "june": "Junio",
+    "july": "Julio",
+    "august": "Agosto",
+    "september": "Septiembre",
+    "october": "Octubre",
+    "november": "Noviembre",
+    "december": "Diciembre"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "tabs": {
+      "people": "Personas",
+      "calendars": "Calendarios",
+      "display": "Pantalla",
+      "about": "Acerca de"
+    },
+    "people": {
+      "title": "Miembros de la familia",
+      "addPerson": "Añadir persona",
+      "name": "Nombre",
+      "color": "Color",
+      "order": "Orden",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "confirmDelete": "¿Seguro que quieres eliminar esta persona? También se eliminarán todos sus calendarios y eventos.",
+      "moveUp": "Subir",
+      "moveDown": "Bajar"
+    },
+    "calendars": {
+      "title": "Fuentes de calendario",
+      "addSource": "Añadir calendario",
+      "sourceName": "Nombre del calendario",
+      "person": "Persona",
+      "assignPeople": "Asignar a personas",
+      "type": "Tipo",
+      "url": "URL",
+      "file": "Archivo",
+      "sourceColor": "Color de eventos",
+      "lastFetched": "Última sincronización",
+      "never": "Nunca",
+      "refresh": "Sincronizar ahora",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Seguro que quieres eliminar esta fuente de calendario?",
+      "icalUrl": "URL iCal",
+      "icalFile": "Archivo iCal",
+      "dropzone": "Suelta el archivo .ics aquí o haz clic para subir",
+      "uploading": "Subiendo...",
+      "assignEvents": "Asignar eventos",
+      "saveAssignments": "Guardar asignaciones",
+      "savedAssignments": "¡Guardado!",
+      "allPeople": "Todos (por defecto)",
+      "noEventsToAssign": "No se encontraron eventos para este calendario",
+      "syncFirst": "Sincroniza el calendario primero para ver los eventos",
+      "loadingEvents": "Cargando eventos...",
+      "syncInterval": "Sincronizar cada"
+    },
+    "display": {
+      "title": "Ajustes de pantalla",
+      "appName": "Nombre de la app",
+      "locale": "Idioma",
+      "refreshInterval": "Intervalo de actualización",
+      "defaultView": "Vista predeterminada",
+      "save": "Guardar ajustes",
+      "saved": "¡Guardado!",
+      "dateFormat": "Formato de fecha",
+      "timezone": "Zona horaria",
+      "rollingDays": "Ventana continua"
+    },
+    "about": {
+      "title": "Acerca de",
+      "version": "Versión",
+      "description": "Una app de calendario familiar que agrega calendarios iCal de todos los miembros de la familia en una vista de calendario mural. Construido con Next.js, SQLite y amor."
+    }
+  },
+  "agenda": {
+    "today": "Hoy",
+    "tomorrow": "Mañana",
+    "noUpcoming": "No hay eventos próximos",
+    "filterByPerson": "Filtrar por persona",
+    "all": "Todos"
+  }
+}

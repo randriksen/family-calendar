@@ -1,0 +1,137 @@
+{
+  "app": {
+    "name": "Calendrier Familial",
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite"
+  },
+  "nav": {
+    "calendar": "Calendrier",
+    "settings": "Paramètres",
+    "today": "Aujourd'hui",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "all": "Tous"
+  },
+  "views": {
+    "month": "Mois",
+    "week": "Semaine",
+    "rolling": "Continu",
+    "agenda": "Agenda"
+  },
+  "calendar": {
+    "weekNumber": "Sem",
+    "showFor": "Afficher pour",
+    "noEvents": "Aucun événement",
+    "holiday": "Jour férié",
+    "allDay": "Toute la journée",
+    "multiDay": "Plusieurs jours",
+    "continues": "suite"
+  },
+  "days": {
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi",
+    "sunday": "Dimanche",
+    "short": {
+      "monday": "Lun",
+      "tuesday": "Mar",
+      "wednesday": "Mer",
+      "thursday": "Jeu",
+      "friday": "Ven",
+      "saturday": "Sam",
+      "sunday": "Dim"
+    }
+  },
+  "months": {
+    "january": "Janvier",
+    "february": "Février",
+    "march": "Mars",
+    "april": "Avril",
+    "may": "Mai",
+    "june": "Juin",
+    "july": "Juillet",
+    "august": "Août",
+    "september": "Septembre",
+    "october": "Octobre",
+    "november": "Novembre",
+    "december": "Décembre"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "tabs": {
+      "people": "Personnes",
+      "calendars": "Calendriers",
+      "display": "Affichage",
+      "about": "À propos"
+    },
+    "people": {
+      "title": "Membres de la famille",
+      "addPerson": "Ajouter une personne",
+      "name": "Nom",
+      "color": "Couleur",
+      "order": "Ordre",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "confirmDelete": "Voulez-vous vraiment supprimer cette personne ? Tous ses calendriers et événements seront également supprimés.",
+      "moveUp": "Monter",
+      "moveDown": "Descendre"
+    },
+    "calendars": {
+      "title": "Sources de calendrier",
+      "addSource": "Ajouter un calendrier",
+      "sourceName": "Nom du calendrier",
+      "person": "Personne",
+      "assignPeople": "Attribuer aux personnes",
+      "type": "Type",
+      "url": "URL",
+      "file": "Fichier",
+      "sourceColor": "Couleur des événements",
+      "lastFetched": "Dernière synchronisation",
+      "never": "Jamais",
+      "refresh": "Synchroniser",
+      "delete": "Supprimer",
+      "confirmDelete": "Voulez-vous vraiment supprimer cette source de calendrier ?",
+      "icalUrl": "URL iCal",
+      "icalFile": "Fichier iCal",
+      "dropzone": "Déposez le fichier .ics ici ou cliquez pour télécharger",
+      "uploading": "Téléchargement...",
+      "assignEvents": "Attribuer des événements",
+      "saveAssignments": "Enregistrer les attributions",
+      "savedAssignments": "Enregistré !",
+      "allPeople": "Tous (par défaut)",
+      "noEventsToAssign": "Aucun événement trouvé pour ce calendrier",
+      "syncFirst": "Synchronisez le calendrier d'abord pour voir les événements",
+      "loadingEvents": "Chargement des événements...",
+      "syncInterval": "Synchroniser toutes les"
+    },
+    "display": {
+      "title": "Paramètres d'affichage",
+      "appName": "Nom de l'application",
+      "locale": "Langue",
+      "refreshInterval": "Intervalle d'actualisation",
+      "defaultView": "Vue par défaut",
+      "save": "Enregistrer",
+      "saved": "Enregistré !",
+      "dateFormat": "Format de date",
+      "timezone": "Fuseau horaire",
+      "rollingDays": "Fenêtre continue"
+    },
+    "about": {
+      "title": "À propos",
+      "version": "Version",
+      "description": "Une application de calendrier familial qui regroupe les calendriers iCal de tous les membres de la famille dans une vue murale unique. Construit avec Next.js, SQLite, et amour."
+    }
+  },
+  "agenda": {
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "noUpcoming": "Aucun événement à venir",
+    "filterByPerson": "Filtrer par personne",
+    "all": "Tous"
+  }
+}

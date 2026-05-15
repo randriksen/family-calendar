@@ -113,8 +113,6 @@
       "title": "Visningsinnstillinger",
       "appName": "Appnavn",
       "locale": "Språk",
-      "localeEn": "Engelsk",
-      "localeNo": "Norsk (Bokmål)",
       "refreshInterval": "Oppdateringsintervall",
       "defaultView": "Standard visning",
       "save": "Lagre innstillinger",

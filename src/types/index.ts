@@ -188,8 +188,6 @@ export interface LocaleData {
       title: string;
       appName: string;
       locale: string;
-      localeEn: string;
-      localeNo: string;
       refreshInterval: string;
       defaultView: string;
       dateFormat: string;

@@ -1,10 +1,18 @@
 import type { LocaleData } from '@/types';
 import enJson from '@/locales/en.json';
 import noJson from '@/locales/no.json';
+import frJson from '@/locales/fr.json';
+import deJson from '@/locales/de.json';
+import esJson from '@/locales/es.json';
+import roJson from '@/locales/ro.json';
 
 const locales: Record<string, LocaleData> = {
   en: enJson as LocaleData,
   no: noJson as LocaleData,
+  fr: frJson as LocaleData,
+  de: deJson as LocaleData,
+  es: esJson as LocaleData,
+  ro: roJson as LocaleData,
 };
 
 export function getLocaleData(locale: string): LocaleData {
@@ -89,5 +97,9 @@ export function getHoliday(locale: string, dateStr: string): string | null {
 
 export const availableLocales = [
   { code: 'en', label: 'English' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'es', label: 'Español' },
+  { code: 'fr', label: 'Français' },
   { code: 'no', label: 'Norsk (Bokmål)' },
+  { code: 'ro', label: 'Română' },
 ];

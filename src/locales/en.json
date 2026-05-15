@@ -113,8 +113,6 @@
       "title": "Display Settings",
       "appName": "App Name",
       "locale": "Language",
-      "localeEn": "English",
-      "localeNo": "Norwegian (Bokmål)",
       "refreshInterval": "Refresh Interval",
       "defaultView": "Default View",
       "save": "Save Settings",

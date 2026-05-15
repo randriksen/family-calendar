@@ -1,0 +1,137 @@
+{
+  "app": {
+    "name": "Calendar de Familie",
+    "loading": "Se încarcă...",
+    "error": "A apărut o eroare"
+  },
+  "nav": {
+    "calendar": "Calendar",
+    "settings": "Setări",
+    "today": "Azi",
+    "prev": "Anterior",
+    "next": "Următor",
+    "all": "Toți"
+  },
+  "views": {
+    "month": "Lună",
+    "week": "Săptămână",
+    "rolling": "Continuu",
+    "agenda": "Agendă"
+  },
+  "calendar": {
+    "weekNumber": "Săpt",
+    "showFor": "Arată pentru",
+    "noEvents": "Niciun eveniment",
+    "holiday": "Sărbătoare",
+    "allDay": "Toată ziua",
+    "multiDay": "Mai multe zile",
+    "continues": "cont."
+  },
+  "days": {
+    "monday": "Luni",
+    "tuesday": "Marți",
+    "wednesday": "Miercuri",
+    "thursday": "Joi",
+    "friday": "Vineri",
+    "saturday": "Sâmbătă",
+    "sunday": "Duminică",
+    "short": {
+      "monday": "Lu",
+      "tuesday": "Ma",
+      "wednesday": "Mi",
+      "thursday": "Jo",
+      "friday": "Vi",
+      "saturday": "Sâ",
+      "sunday": "Du"
+    }
+  },
+  "months": {
+    "january": "Ianuarie",
+    "february": "Februarie",
+    "march": "Martie",
+    "april": "Aprilie",
+    "may": "Mai",
+    "june": "Iunie",
+    "july": "Iulie",
+    "august": "August",
+    "september": "Septembrie",
+    "october": "Octombrie",
+    "november": "Noiembrie",
+    "december": "Decembrie"
+  },
+  "settings": {
+    "title": "Setări",
+    "tabs": {
+      "people": "Persoane",
+      "calendars": "Calendare",
+      "display": "Afișare",
+      "about": "Despre"
+    },
+    "people": {
+      "title": "Membrii familiei",
+      "addPerson": "Adaugă persoană",
+      "name": "Nume",
+      "color": "Culoare",
+      "order": "Ordine",
+      "edit": "Editează",
+      "delete": "Șterge",
+      "save": "Salvează",
+      "cancel": "Anulează",
+      "confirmDelete": "Sigur vrei să ștergi această persoană? Toate calendarele și evenimentele sale vor fi șterse.",
+      "moveUp": "Sus",
+      "moveDown": "Jos"
+    },
+    "calendars": {
+      "title": "Surse de calendar",
+      "addSource": "Adaugă calendar",
+      "sourceName": "Nume calendar",
+      "person": "Persoană",
+      "assignPeople": "Atribuie persoane",
+      "type": "Tip",
+      "url": "URL",
+      "file": "Fișier",
+      "sourceColor": "Culoare evenimente",
+      "lastFetched": "Ultima sincronizare",
+      "never": "Niciodată",
+      "refresh": "Sincronizează acum",
+      "delete": "Șterge",
+      "confirmDelete": "Sigur vrei să ștergi această sursă de calendar?",
+      "icalUrl": "URL iCal",
+      "icalFile": "Fișier iCal",
+      "dropzone": "Trage fișierul .ics aici sau apasă pentru a încărca",
+      "uploading": "Se încarcă...",
+      "assignEvents": "Atribuie evenimente",
+      "saveAssignments": "Salvează atribuirile",
+      "savedAssignments": "Salvat!",
+      "allPeople": "Toți (implicit)",
+      "noEventsToAssign": "Nu s-au găsit evenimente pentru acest calendar",
+      "syncFirst": "Sincronizează calendarul mai întâi pentru a vedea evenimentele",
+      "loadingEvents": "Se încarcă evenimentele...",
+      "syncInterval": "Sincronizează la fiecare"
+    },
+    "display": {
+      "title": "Setări de afișare",
+      "appName": "Numele aplicației",
+      "locale": "Limbă",
+      "refreshInterval": "Interval de reîmprospătare",
+      "defaultView": "Vedere implicită",
+      "save": "Salvează setările",
+      "saved": "Salvat!",
+      "dateFormat": "Format dată",
+      "timezone": "Fus orar",
+      "rollingDays": "Fereastră continuă"
+    },
+    "about": {
+      "title": "Despre",
+      "version": "Versiune",
+      "description": "O aplicație de calendar de familie care agregă calendarele iCal ale tuturor membrilor familiei într-o singură vedere. Construit cu Next.js, SQLite și dragoste."
+    }
+  },
+  "agenda": {
+    "today": "Azi",
+    "tomorrow": "Mâine",
+    "noUpcoming": "Niciun eveniment viitor",
+    "filterByPerson": "Filtrează după persoană",
+    "all": "Toți"
+  }
+}

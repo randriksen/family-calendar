@@ -64,8 +64,8 @@ const TIMEZONE_OPTIONS = [
 ];
 
 export default function DisplaySettings({ settings, t, onSaved }: DisplaySettingsProps) {
-  const [appName, setAppName] = useState(settings.app_name || 'Familiekalender');
-  const [locale, setLocale] = useState(settings.locale || 'no');
+  const [appName, setAppName] = useState(settings.app_name || 'Family Calendar');
+  const [locale, setLocale] = useState(settings.locale || 'en');
   const [refreshInterval, setRefreshInterval] = useState(settings.refresh_interval_minutes || '60');
   const [defaultView, setDefaultView] = useState<ViewType>((settings.default_view as ViewType) || 'month');
   const [dateFormat, setDateFormat] = useState(settings.date_format || 'dd/MM/yyyy');
@@ -129,8 +129,9 @@ export default function DisplaySettings({ settings, t, onSaved }: DisplaySetting
           onChange={e => setLocale(e.target.value)}
           className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="en">{t.settings.display.localeEn}</option>
-          <option value="no">{t.settings.display.localeNo}</option>
+          {availableLocales.map(l => (
+            <option key={l.code} value={l.code}>{l.label}</option>
+          ))}
         </select>
       </div>
 
