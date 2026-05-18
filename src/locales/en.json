@@ -16,7 +16,9 @@
     "month": "Month",
     "week": "Week",
     "rolling": "Rolling",
-    "agenda": "Agenda"
+    "compare": "Compare",
+    "agenda": "Agenda",
+    "day": "Day Slots"
   },
   "calendar": {
     "weekNumber": "Wk",

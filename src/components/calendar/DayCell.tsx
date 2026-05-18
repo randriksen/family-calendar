@@ -22,6 +22,7 @@ interface DayCellProps {
   eventLanes?: Map<string, number>;
   singleDaySlots?: Map<string, number>;
   totalSingleSlots?: number;
+  sharedMaxLane?: number;
 }
 
 const STRIP_W = 8;
@@ -44,6 +45,7 @@ export default function DayCell({
   eventLanes,
   singleDaySlots,
   totalSingleSlots,
+  sharedMaxLane,
 }: DayCellProps) {
   const multiDay  = eventDisplays.filter(e => e.position !== 'single');
   const singleDay = eventDisplays.filter(e => e.position === 'single');
@@ -56,16 +58,20 @@ export default function DayCell({
     ? Math.max(...multiDayWithLane.map(e => e.lane))
     : -1;
 
+  // Use the shared max lane across all person columns so every column has the
+  // same ribbon area height — this keeps single-day badges vertically aligned.
+  const displayMaxLane = Math.max(maxLane, sharedMaxLane ?? -1);
+
   const cap = maxEvents ?? Infinity;
   const visibleSingle = singleDay.slice(0, cap);
   const hiddenCount = singleDay.length - visibleSingle.length;
 
-  // Width reserved on the right for all strips
+  // Width reserved on the right for all strips (only for strips THIS column actually has)
   const stripReserve = maxLane >= 0 ? (maxLane + 1) * (STRIP_W + STRIP_GAP) : 0;
 
-  // Total height of the ribbon area (above single-day badges)
-  const ribbonAreaH = maxLane >= 0
-    ? LANE_TOP + (maxLane + 1) * (LANE_H + LANE_GAP)
+  // Total height of the ribbon area (above single-day badges) — shared across columns
+  const ribbonAreaH = displayMaxLane >= 0
+    ? LANE_TOP + (displayMaxLane + 1) * (LANE_H + LANE_GAP)
     : 0;
 
   return (
@@ -112,9 +118,9 @@ export default function DayCell({
       })}
 
       {/* ── Ribbon rows: one per lane, connecting badge to strip ── */}
-      {maxLane >= 0 && (
+      {displayMaxLane >= 0 && (
         <div style={{ paddingTop: LANE_TOP }}>
-          {Array.from({ length: maxLane + 1 }, (_, lane) => {
+          {Array.from({ length: displayMaxLane + 1 }, (_, lane) => {
             const ed = multiDayWithLane.find(e => e.lane === lane);
 
             if (!ed) {
@@ -154,6 +160,9 @@ export default function DayCell({
                     className="flex items-center gap-1 text-[11px] font-medium truncate leading-none"
                     style={{ color: textColor }}
                   >
+                    {event.all_day && (
+                      <span className="flex-shrink-0 uppercase tracking-wide text-[9px] font-bold opacity-90">All day</span>
+                    )}
                     {timeStr && (
                       <span className="flex-shrink-0 opacity-75 font-normal">{timeStr}</span>
                     )}

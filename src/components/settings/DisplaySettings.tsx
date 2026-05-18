@@ -30,6 +30,7 @@ const VIEW_OPTIONS: { value: ViewType; labelKey: keyof LocaleData['views'] }[] =
   { value: 'month', labelKey: 'month' },
   { value: 'week', labelKey: 'week' },
   { value: 'rolling', labelKey: 'rolling' },
+  { value: 'compare', labelKey: 'compare' },
   { value: 'agenda', labelKey: 'agenda' },
 ];
 
@@ -67,7 +68,8 @@ export default function DisplaySettings({ settings, t, onSaved }: DisplaySetting
   const [appName, setAppName] = useState(settings.app_name || 'Family Calendar');
   const [locale, setLocale] = useState(settings.locale || 'en');
   const [refreshInterval, setRefreshInterval] = useState(settings.refresh_interval_minutes || '60');
-  const [defaultView, setDefaultView] = useState<ViewType>((settings.default_view as ViewType) || 'month');
+  const initialDefaultView = (settings.default_view as ViewType) === 'day' ? 'week' : (settings.default_view as ViewType);
+  const [defaultView, setDefaultView] = useState<ViewType>(initialDefaultView || 'month');
   const [dateFormat, setDateFormat] = useState(settings.date_format || 'dd/MM/yyyy');
   const [timezone, setTimezone] = useState(settings.display_timezone || 'Europe/Oslo');
   const [rollingDays, setRollingDays] = useState(settings.rolling_days || '31');

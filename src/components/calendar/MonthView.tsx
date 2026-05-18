@@ -8,8 +8,8 @@ import {
 import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
-import { computeEventLanes, computeDaySingleSlots } from './calendarUtils';
-import { getEventDateRangeKeys } from '@/lib/tz';
+import { computeEventLanes, computeDaySingleSlots, buildCompareSlotsForDates } from './calendarUtils';
+import { getEventDateRangeKeys, formatTzTime } from '@/lib/tz';
 import { hexWithAlpha } from '@/lib/colorUtils';
 
 interface MonthViewProps {
@@ -22,6 +22,7 @@ interface MonthViewProps {
   timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
   singlePersonId?: string;
+  compareTimeSlots?: boolean;
 }
 
 function getShortDayName(t: LocaleData, day: Date): string {
@@ -37,7 +38,7 @@ function getShortDayName(t: LocaleData, day: Date): string {
   return names[day.getDay()];
 }
 
-export default function MonthView({ date, events, sources, people, t, locale, timezone, onEventClick, singlePersonId }: MonthViewProps) {
+export default function MonthView({ date, events, sources, people, t, locale, timezone, onEventClick, singlePersonId, compareTimeSlots = false }: MonthViewProps) {
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
 
@@ -57,6 +58,13 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
 
   // Stable lane assignments for multi-day events
   const eventLanes = useMemo(() => computeEventLanes(events), [events]);
+
+  // Pre-compute concurrent time slots for all visible days in one pass.
+  const compareSlotsByDate = useMemo(() => {
+    if (!compareTimeSlots || displayedPeople.length === 0) return {} as Record<string, import('./calendarUtils').CompareSlot[]>;
+    const dateKeys = days.map(d => format(d, 'yyyy-MM-dd'));
+    return buildCompareSlotsForDates(dateKeys, events, displayedPeople, timezone, t.calendar.allDay);
+  }, [compareTimeSlots, days, events, displayedPeople, timezone, t.calendar.allDay]);
 
   // Build map: dateStr → personId → EventDisplay[]
   // Multi-day events get positional markers; single-day get 'single'
@@ -105,6 +113,34 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
     return map;
   }, [events]);
 
+  const singleDaySlotsByDate = useMemo(() => {
+    const result: Record<string, { slots: Map<string, number>; total: number }> = {};
+    for (const dateStr of days.map(d => format(d, 'yyyy-MM-dd'))) {
+      const allSingle = Object.values(eventsByDate[dateStr] ?? {})
+        .flat()
+        .filter(ed => ed.position === 'single')
+        .map(ed => ed.event);
+      result[dateStr] = computeDaySingleSlots(allSingle);
+    }
+    return result;
+  }, [eventsByDate, days]);
+
+  const sharedMaxLaneByDate = useMemo(() => {
+    const result: Record<string, number> = {};
+    for (const dateStr of days.map(d => format(d, 'yyyy-MM-dd'))) {
+      let maxLane = -1;
+      for (const personEvents of Object.values(eventsByDate[dateStr] ?? {})) {
+        const multiDay = personEvents.filter(ed => ed.position !== 'single');
+        multiDay.forEach((ed, idx) => {
+          const lane = eventLanes.get(ed.event.id) ?? idx;
+          if (lane > maxLane) maxLane = lane;
+        });
+      }
+      result[dateStr] = maxLane;
+    }
+    return result;
+  }, [eventsByDate, eventLanes, days]);
+
   return (
     <div className="flex flex-col h-full">
       {/* Sticky header */}
@@ -150,12 +186,8 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
           const shortDayName = getShortDayName(t, day);
           const isEvenRow = idx % 2 === 0;
 
-          // Compute shared single-day slots across all persons for alignment
-          const allSingleForDay = Object.values(eventsByDate[dateStr] ?? {})
-            .flat()
-            .filter(ed => ed.position === 'single')
-            .map(ed => ed.event);
-          const { slots: singleDaySlots, total: totalSingleSlots } = computeDaySingleSlots(allSingleForDay);
+          const { slots: singleDaySlots, total: totalSingleSlots } = singleDaySlotsByDate[dateStr] ?? { slots: new Map(), total: 0 };
+          const sharedMaxLane = sharedMaxLaneByDate[dateStr] ?? -1;
 
           return (
             <div
@@ -206,28 +238,63 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
               {displayedPeople.length > 0 ? (
                 displayedPeople.map(person => {
                   const personDisplays = eventsByDate[dateStr]?.[person.id] || [];
+                  const compareSlots = compareSlotsByDate[dateStr] ?? [];
                   return (
                     <div
                       key={person.id}
                       className="border-r border-gray-100 dark:border-gray-800 last:border-r-0 flex flex-col overflow-hidden"
                       style={{ backgroundColor: hexWithAlpha(person.color, isEvenRow ? 0.12 : 0.06) }}
                     >
-                      <DayCell
-                        eventDisplays={personDisplays}
-                        sources={sources}
-                        people={people}
-                        isToday={today}
-                        isCurrentMonth={true}
-                        timezone={timezone}
-                        onEventClick={onEventClick}
-                        eventLanes={eventLanes}
-                        singleDaySlots={singleDaySlots}
-                        totalSingleSlots={totalSingleSlots}
-                      />
+                      {compareTimeSlots ? (
+                        <div className="flex flex-col">
+                          {compareSlots.length === 0 ? (
+                            <div className="px-2 py-2 text-[11px] text-gray-300 dark:text-gray-600">&nbsp;</div>
+                          ) : (
+                            compareSlots.map(slot => {
+                              const list = slot.byPerson[person.id] ?? [];
+                              const first = list[0];
+                              return (
+                                <div key={slot.key} className="h-10 px-1 py-0.5 border-b border-gray-100 dark:border-gray-800 last:border-b-0 overflow-hidden">
+                                  {first ? (
+                                    <button
+                                      onClick={() => onEventClick?.(first)}
+                                      className="w-full h-full text-left px-1.5 py-0.5 rounded text-[11px] font-medium text-white hover:opacity-90 flex flex-col justify-center"
+                                      style={{ backgroundColor: person.color }}
+                                      title={first.title}
+                                    >
+                                      <div className="flex items-baseline gap-1 overflow-hidden">
+                                        <span className="truncate flex-1">{first.title}</span>
+                                        {list.length > 1 && <span className="flex-shrink-0 opacity-85">+{list.length - 1}</span>}
+                                      </div>
+                                      {slot.key !== 'all-day' && (
+                                        <div className="opacity-85 text-[10px] leading-none mt-0.5">{formatTzTime(first.start_date, timezone)}</div>
+                                      )}
+                                    </button>
+                                  ) : null}
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      ) : (
+                        <DayCell
+                          eventDisplays={personDisplays}
+                          sources={sources}
+                          people={people}
+                          isToday={today}
+                          isCurrentMonth={true}
+                          timezone={timezone}
+                          onEventClick={onEventClick}
+                          eventLanes={eventLanes}
+                          singleDaySlots={singleDaySlots}
+                          totalSingleSlots={totalSingleSlots}
+                          sharedMaxLane={sharedMaxLane}
+                        />
+                      )}
                     </div>
                   );
                 })
-              ) : (
+                ) : (
                 <div className="px-2 py-3 text-xs text-gray-300 dark:text-gray-600 italic col-span-1">
                   No people configured
                 </div>

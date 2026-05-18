@@ -36,12 +36,15 @@ function getNavigationLabel(view: ViewType, date: Date, t: LocaleData, locale: s
       const weekNum = getISOWeek(date);
       return `${t.calendar.weekNumber} ${weekNum}, ${date.getFullYear()}`;
     }
-    case 'rolling': {
+    case 'rolling':
+    case 'compare': {
       const end = addDays(date, rollingDays - 1);
       return `${format(date, dateFormat)} – ${format(end, dateFormat)}`;
     }
     case 'agenda':
       return `${getMonthName(locale, date.getMonth())} ${date.getFullYear()}`;
+    case 'day':
+      return format(date, dateFormat);
     default:
       return '';
   }
@@ -54,9 +57,12 @@ function getDateRange(view: ViewType, date: Date, rollingDays: number): { start:
     case 'week':
       return { start: startOfWeek(date, { weekStartsOn: 1 }), end: endOfWeek(date, { weekStartsOn: 1 }) };
     case 'rolling':
+    case 'compare':
       return { start: addDays(date, -90), end: addDays(date, rollingDays + 90) };
     case 'agenda':
       return { start: date, end: addDays(date, 90) };
+    case 'day':
+      return { start: date, end: date };
     default:
       return { start: date, end: date };
   }
@@ -70,14 +76,17 @@ function navigateDate(view: ViewType, date: Date, direction: 'prev' | 'next'): D
     case 'week':
       return direction === 'next' ? addWeeks(date, 1) : subWeeks(date, 1);
     case 'rolling':
+    case 'compare':
     case 'agenda':
       return addDays(date, delta * 14);
+    case 'day':
+      return addDays(date, delta);
     default:
       return date;
   }
 }
 
-const VIEW_ORDER: ViewType[] = ['month', 'week', 'rolling', 'agenda'];
+const VIEW_ORDER: ViewType[] = ['month', 'week', 'rolling', 'compare', 'agenda'];
 
 function MonthIcon({ active }: { active: boolean }) {
   return (
@@ -125,11 +134,42 @@ function AgendaIcon({ active }: { active: boolean }) {
   );
 }
 
+function DayIcon({ active }: { active: boolean }) {
+  return (
+    <svg className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="12" y1="9" x2="12" y2="20" />
+      <line x1="6" y1="13" x2="10" y2="13" />
+      <line x1="14" y1="13" x2="18" y2="13" />
+      <line x1="6" y1="17" x2="10" y2="17" />
+      <line x1="14" y1="17" x2="18" y2="17" />
+    </svg>
+  );
+}
+
+function CompareIcon({ active }: { active: boolean }) {
+  return (
+    <svg className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <rect x="3" y="9" width="5" height="3" rx="0.5" fill="currentColor" stroke="none" />
+      <rect x="10" y="9" width="4" height="3" rx="0.5" fill="currentColor" stroke="none" />
+      <rect x="16" y="9" width="5" height="3" rx="0.5" fill="currentColor" stroke="none" />
+      <line x1="3" y1="15" x2="21" y2="15" />
+      <rect x="3" y="18" width="3" height="3" rx="0.5" fill="currentColor" stroke="none" />
+      <rect x="10" y="18" width="5" height="3" rx="0.5" fill="currentColor" stroke="none" />
+      <rect x="17" y="18" width="4" height="3" rx="0.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 const VIEW_ICONS: Record<ViewType, (active: boolean) => React.ReactNode> = {
   month: (a) => <MonthIcon active={a} />,
   week: (a) => <WeekIcon active={a} />,
   rolling: (a) => <RollingIcon active={a} />,
+  compare: (a) => <CompareIcon active={a} />,
   agenda: (a) => <AgendaIcon active={a} />,
+  day: (a) => <DayIcon active={a} />,
 };
 
 export default function CalendarView({
@@ -382,6 +422,9 @@ export default function CalendarView({
         )}
         {view === 'rolling' && (
           <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} rollingDays={rollingDays} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} />
+        )}
+        {view === 'compare' && (
+          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} rollingDays={rollingDays} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} compareTimeSlots />
         )}
         {view === 'agenda' && (
           <AgendaView date={date} events={events} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />

@@ -9,6 +9,12 @@ import DisplaySettings from '@/components/settings/DisplaySettings';
 
 type Tab = 'people' | 'calendars' | 'display' | 'about';
 
+interface BuildInfo {
+  version: string;
+  buildDate: string;
+  buildTime: string;
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('people');
   const [people, setPeople] = useState<Person[]>([]);
@@ -16,22 +22,26 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [t, setT] = useState<LocaleData>(getLocaleData('no'));
   const [loading, setLoading] = useState(true);
+  const [buildInfo, setBuildInfo] = useState<BuildInfo | null>(null);
 
   const loadAll = useCallback(async () => {
     try {
-      const [peopleRes, sourcesRes, settingsRes] = await Promise.all([
+      const [peopleRes, sourcesRes, settingsRes, versionRes] = await Promise.all([
         fetch('/api/people'),
         fetch('/api/sources'),
         fetch('/api/settings'),
+        fetch('/api/version'),
       ]);
-      const [peopleData, sourcesData, settingsData] = await Promise.all([
+      const [peopleData, sourcesData, settingsData, versionData] = await Promise.all([
         peopleRes.json(),
         sourcesRes.json(),
         settingsRes.json(),
+        versionRes.json().catch(() => null),
       ]);
       setPeople(peopleData);
       setSources(sourcesData);
       setSettings(settingsData);
+      setBuildInfo(versionData);
       setT(getLocaleData(settingsData.locale || 'no'));
     } catch (err) {
       console.error('Failed to load settings data:', err);
@@ -125,7 +135,28 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t.settings.about.title}</h2>
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">v{process.env.NEXT_PUBLIC_APP_VERSION}</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Version:</span>
+                  <span className="text-sm font-mono font-semibold text-gray-900 dark:text-gray-100">
+                    v{buildInfo?.version || process.env.NEXT_PUBLIC_APP_VERSION || '1.1.0'}
+                  </span>
+                </div>
+                {buildInfo && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Build Date:</span>
+                      <span className="text-sm font-mono text-gray-700 dark:text-gray-300">{buildInfo.buildDate}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Build Time:</span>
+                      <span className="text-sm font-mono text-gray-700 dark:text-gray-300">
+                        {new Date(buildInfo.buildTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
               <p className="text-sm text-gray-700 dark:text-gray-300">{t.settings.about.description}</p>
               <div className="pt-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500 space-y-1">
                 <div>Built with Next.js 14, SQLite, node-ical, date-fns</div>

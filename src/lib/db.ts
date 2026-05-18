@@ -159,6 +159,7 @@ function initSchema(db: Database.Database): void {
       insertSetting.run('date_format', 'dd/MM/yyyy');
       insertSetting.run('display_timezone', 'Europe/Oslo');
       insertSetting.run('rolling_days', '31');
+      insertSetting.run('compare_time_slots', '0');
     });
     insertMany();
   } else {
@@ -167,6 +168,7 @@ function initSchema(db: Database.Database): void {
     upsertIfMissing.run('date_format', 'dd/MM/yyyy');
     upsertIfMissing.run('display_timezone', 'Europe/Oslo');
     upsertIfMissing.run('rolling_days', '31');
+    upsertIfMissing.run('compare_time_slots', '0');
   }
 }
 
