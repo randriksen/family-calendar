@@ -24,7 +24,9 @@ interface RollingViewProps {
   rollingDays: number;
   onEventClick?: (event: CalendarEvent) => void;
   singlePersonId?: string;
+  compareTimeSlots?: boolean;
 }
+
 
 function getDayLabel(day: Date, t: LocaleData): string {
   const dayIndex = (day.getDay() + 6) % 7;
@@ -65,7 +67,7 @@ function buildEventDisplays(events: CalendarEvent[], timezone: string): Record<s
   return map;
 }
 
-export default function RollingView({ date, events, sources, people, t, locale, timezone, rollingDays, onEventClick, singlePersonId }: RollingViewProps) {
+export default function RollingView({ date, events, sources, people, t, locale, timezone, rollingDays, onEventClick, singlePersonId, compareTimeSlots = false }: RollingViewProps) {
   const [extraPast, setExtraPast] = useState(INITIAL_PAST);
   const [extraFuture, setExtraFuture] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -89,6 +91,34 @@ export default function RollingView({ date, events, sources, people, t, locale, 
     ? people.filter(p => p.id === singlePersonId)
     : people;
   const gridCols = singlePersonId ? `3.5rem 1fr` : `3.5rem repeat(${Math.max(displayedPeople.length, 1)}, minmax(0, 1fr))`;
+
+  const singleDaySlotsByDate = useMemo(() => {
+    const result: Record<string, { slots: Map<string, number>; total: number }> = {};
+    for (const dateStr of days.map(d => format(d, 'yyyy-MM-dd'))) {
+      const allSingle = Object.values(eventsByDate[dateStr] ?? {})
+        .flat()
+        .filter(ed => ed.position === 'single')
+        .map(ed => ed.event);
+      result[dateStr] = computeDaySingleSlots(allSingle);
+    }
+    return result;
+  }, [eventsByDate, days]);
+
+  const sharedMaxLaneByDate = useMemo(() => {
+    const result: Record<string, number> = {};
+    for (const dateStr of days.map(d => format(d, 'yyyy-MM-dd'))) {
+      let maxLane = -1;
+      for (const personEvents of Object.values(eventsByDate[dateStr] ?? {})) {
+        const multiDay = personEvents.filter(ed => ed.position !== 'single');
+        multiDay.forEach((ed, idx) => {
+          const lane = eventLanes.get(ed.event.id) ?? idx;
+          if (lane > maxLane) maxLane = lane;
+        });
+      }
+      result[dateStr] = maxLane;
+    }
+    return result;
+  }, [eventsByDate, eventLanes, days]);
 
   // Scroll to anchor date when date prop changes (Today / Prev / Next)
   useEffect(() => {
@@ -192,11 +222,8 @@ export default function RollingView({ date, events, sources, people, t, locale, 
           const dayLabel = getDayLabel(day, t);
           const isEvenRow = dayIdx % 2 === 0;
 
-          const allSingleForDay = Object.values(eventsByDate[dateStr] ?? {})
-            .flat()
-            .filter(ed => ed.position === 'single')
-            .map(ed => ed.event);
-          const { slots: singleDaySlots, total: totalSingleSlots } = computeDaySingleSlots(allSingleForDay);
+          const { slots: singleDaySlots, total: totalSingleSlots } = singleDaySlotsByDate[dateStr] ?? { slots: new Map(), total: 0 };
+          const sharedMaxLane = sharedMaxLaneByDate[dateStr] ?? -1;
 
           return (
             <div key={dateStr} ref={dateStr === anchorStr ? anchorRef : undefined}>
@@ -215,7 +242,7 @@ export default function RollingView({ date, events, sources, people, t, locale, 
               )}
 
               <div
-                className={`grid border-b border-gray-100 dark:border-gray-800 last:border-b-0 ${
+                className={`grid border-b border-gray-200 dark:border-gray-700 last:border-b-0 ${
                   today     ? 'bg-blue-50 dark:bg-blue-900/20' :
                   isWeekend ? 'bg-amber-50 dark:bg-amber-900/15' :
                   isEvenRow ? 'bg-[#F0F4F8] dark:bg-[#1B2431]' : 'bg-white dark:bg-[#2E3F52]'
@@ -255,13 +282,13 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                           sources={sources}
                           people={people}
                           isToday={today}
-                          maxEvents={3}
                           hideLocation
                           timezone={timezone}
                           onEventClick={onEventClick}
                           eventLanes={eventLanes}
-                          singleDaySlots={singleDaySlots}
-                          totalSingleSlots={totalSingleSlots}
+                          singleDaySlots={compareTimeSlots ? singleDaySlots : undefined}
+                          totalSingleSlots={compareTimeSlots ? totalSingleSlots : undefined}
+                          sharedMaxLane={compareTimeSlots ? sharedMaxLane : undefined}
                         />
                       </div>
                     );

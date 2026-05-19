@@ -1,11 +1,13 @@
 # Release Notes
 
-## Upcoming Public Release
+## Upcoming Release
 
 ### Highlights
 
+- **Compact / aligned layout toggle** — Month, Week, and Rolling views now have a toggle button in the header. Toggle off (gray) gives a compact stacked layout with more days visible at once; toggle on (blue) activates slot-aligned layout where events at the same time appear at the same vertical row across all person columns.
 - Improved all-day event normalization and timezone handling.
 - Better visual emphasis for single-day all-day events.
+- All events in a day are always visible — no events are hidden behind an overflow counter.
 - Cleaner public repository documentation and contribution flow.
 
 ### Documentation and Project Hygiene

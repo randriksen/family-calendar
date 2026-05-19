@@ -48,7 +48,7 @@ export interface Settings {
   rolling_days: string;
 }
 
-export type ViewType = 'month' | 'week' | 'rolling' | 'agenda';
+export type ViewType = 'month' | 'week' | 'rolling' | 'compare' | 'agenda' | 'day';
 
 export interface DateRange {
   start: Date;
@@ -91,7 +91,9 @@ export interface LocaleData {
     month: string;
     week: string;
     rolling: string;
+    compare: string;
     agenda: string;
+    day: string;
   };
   calendar: {
     weekNumber: string;

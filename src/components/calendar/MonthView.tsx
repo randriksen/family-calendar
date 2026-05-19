@@ -22,6 +22,7 @@ interface MonthViewProps {
   timezone: string;
   onEventClick?: (event: CalendarEvent) => void;
   singlePersonId?: string;
+  compareTimeSlots?: boolean;
 }
 
 function getShortDayName(t: LocaleData, day: Date): string {
@@ -37,7 +38,7 @@ function getShortDayName(t: LocaleData, day: Date): string {
   return names[day.getDay()];
 }
 
-export default function MonthView({ date, events, sources, people, t, locale, timezone, onEventClick, singlePersonId }: MonthViewProps) {
+export default function MonthView({ date, events, sources, people, t, locale, timezone, onEventClick, singlePersonId, compareTimeSlots = false }: MonthViewProps) {
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
 
@@ -105,6 +106,34 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
     return map;
   }, [events]);
 
+  const singleDaySlotsByDate = useMemo(() => {
+    const result: Record<string, { slots: Map<string, number>; total: number }> = {};
+    for (const dateStr of days.map(d => format(d, 'yyyy-MM-dd'))) {
+      const allSingle = Object.values(eventsByDate[dateStr] ?? {})
+        .flat()
+        .filter(ed => ed.position === 'single')
+        .map(ed => ed.event);
+      result[dateStr] = computeDaySingleSlots(allSingle);
+    }
+    return result;
+  }, [eventsByDate, days]);
+
+  const sharedMaxLaneByDate = useMemo(() => {
+    const result: Record<string, number> = {};
+    for (const dateStr of days.map(d => format(d, 'yyyy-MM-dd'))) {
+      let maxLane = -1;
+      for (const personEvents of Object.values(eventsByDate[dateStr] ?? {})) {
+        const multiDay = personEvents.filter(ed => ed.position !== 'single');
+        multiDay.forEach((ed, idx) => {
+          const lane = eventLanes.get(ed.event.id) ?? idx;
+          if (lane > maxLane) maxLane = lane;
+        });
+      }
+      result[dateStr] = maxLane;
+    }
+    return result;
+  }, [eventsByDate, eventLanes, days]);
+
   return (
     <div className="flex flex-col h-full">
       {/* Sticky header */}
@@ -150,12 +179,8 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
           const shortDayName = getShortDayName(t, day);
           const isEvenRow = idx % 2 === 0;
 
-          // Compute shared single-day slots across all persons for alignment
-          const allSingleForDay = Object.values(eventsByDate[dateStr] ?? {})
-            .flat()
-            .filter(ed => ed.position === 'single')
-            .map(ed => ed.event);
-          const { slots: singleDaySlots, total: totalSingleSlots } = computeDaySingleSlots(allSingleForDay);
+          const { slots: singleDaySlots, total: totalSingleSlots } = singleDaySlotsByDate[dateStr] ?? { slots: new Map(), total: 0 };
+          const sharedMaxLane = sharedMaxLaneByDate[dateStr] ?? -1;
 
           return (
             <div
@@ -221,13 +246,14 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
                         timezone={timezone}
                         onEventClick={onEventClick}
                         eventLanes={eventLanes}
-                        singleDaySlots={singleDaySlots}
-                        totalSingleSlots={totalSingleSlots}
+                        singleDaySlots={compareTimeSlots ? singleDaySlots : undefined}
+                        totalSingleSlots={compareTimeSlots ? totalSingleSlots : undefined}
+                        sharedMaxLane={compareTimeSlots ? sharedMaxLane : undefined}
                       />
                     </div>
                   );
                 })
-              ) : (
+                ) : (
                 <div className="px-2 py-3 text-xs text-gray-300 dark:text-gray-600 italic col-span-1">
                   No people configured
                 </div>
