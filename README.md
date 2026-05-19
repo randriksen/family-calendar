@@ -19,9 +19,9 @@ A self-hosted family wall calendar that aggregates multiple iCal feeds into a si
 ## Features
 
 - **Multiple views** — Month, Week, Rolling (configurable day range), and Agenda
+- **Compact / aligned toggle** — switch between a compact stacked layout and a slot-aligned layout where same-day events appear at the same vertical position across all person columns; available in Month, Week, and Rolling views
 - **Per-person color coding** — each family member has a unique color applied to their events and column background
 - **Multi-day event ribbons** — spans render as continuous colored strips across days
-- **Smart event alignment** — shared events appear at the same vertical position across all person columns
 - **iCal support** — subscribe to URLs (Google Calendar, iCloud, etc.) or upload `.ics` files
 - **Event overrides** — restrict specific events to only show under certain people
 - **Auto-refresh** — configurable background sync interval (default 60 minutes)
@@ -153,7 +153,7 @@ All settings are configurable from the **Settings → Display** tab:
 |---|---|---|
 | `locale` | `en` | UI language (`en` or `no`) |
 | `app_name` | `Family Calendar` | Name shown in the browser title |
-| `default_view` | `rolling` | Starting view (`month`, `week`, `rolling`, `agenda`) |
+| `default_view` | `rolling` | Starting view: `month`, `week`, `rolling`, or `agenda` |
 | `refresh_interval_minutes` | `60` | How often to sync iCal sources |
 | `rolling_days` | `31` | Number of days shown in Rolling view |
 | `display_timezone` | `Europe/Oslo` | Timezone for rendering events |
