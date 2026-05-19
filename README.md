@@ -30,6 +30,29 @@ A self-hosted family wall calendar that aggregates multiple iCal feeds into a si
 - **Localization** — English and Norwegian, including Norwegian public holidays (2025–2027)
 - **Timezone support** — configurable display timezone (default: Europe/Oslo)
 
+## Screenshots
+
+### Rolling view — compact layout (toggle off)
+![Rolling view compact](docs/screenshots/rolling-compact.png)
+
+### Rolling view — aligned layout (toggle on)
+![Rolling view aligned](docs/screenshots/rolling-aligned.png)
+
+### Rolling view — dark mode
+![Rolling view dark](docs/screenshots/rolling-compact-dark.png)
+
+### Week view
+![Week view](docs/screenshots/week-compact.png)
+
+### Month view
+![Month view](docs/screenshots/month-compact.png)
+
+### Agenda view
+![Agenda view](docs/screenshots/agenda.png)
+
+### Mobile
+![Mobile](docs/screenshots/mobile-rolling.png)
+
 ## Quick Start
 
 ### With Docker Compose (recommended)
