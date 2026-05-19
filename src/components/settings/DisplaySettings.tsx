@@ -30,7 +30,6 @@ const VIEW_OPTIONS: { value: ViewType; labelKey: keyof LocaleData['views'] }[] =
   { value: 'month', labelKey: 'month' },
   { value: 'week', labelKey: 'week' },
   { value: 'rolling', labelKey: 'rolling' },
-  { value: 'compare', labelKey: 'compare' },
   { value: 'agenda', labelKey: 'agenda' },
 ];
 

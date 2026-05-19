@@ -5,8 +5,8 @@ import { eachDayOfInterval, addDays, isToday, getISOWeek, format } from 'date-fn
 import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types';
 import { getHoliday } from '@/lib/i18n';
 import DayCell, { type EventDisplay } from './DayCell';
-import { computeEventLanes, computeDaySingleSlots, buildCompareSlotsForDates } from './calendarUtils';
-import { getEventDateRangeKeys, formatTzTime } from '@/lib/tz';
+import { computeEventLanes, computeDaySingleSlots } from './calendarUtils';
+import { getEventDateRangeKeys } from '@/lib/tz';
 import { hexWithAlpha } from '@/lib/colorUtils';
 
 const INITIAL_PAST = 30;
@@ -91,12 +91,6 @@ export default function RollingView({ date, events, sources, people, t, locale, 
     ? people.filter(p => p.id === singlePersonId)
     : people;
   const gridCols = singlePersonId ? `3.5rem 1fr` : `3.5rem repeat(${Math.max(displayedPeople.length, 1)}, minmax(0, 1fr))`;
-
-  const compareSlotsByDate = useMemo(() => {
-    if (!compareTimeSlots || displayedPeople.length === 0) return {} as Record<string, import('./calendarUtils').CompareSlot[]>;
-    const dateKeys = days.map(d => format(d, 'yyyy-MM-dd'));
-    return buildCompareSlotsForDates(dateKeys, events, displayedPeople, timezone, t.calendar.allDay);
-  }, [compareTimeSlots, days, events, displayedPeople, timezone, t.calendar.allDay]);
 
   const singleDaySlotsByDate = useMemo(() => {
     const result: Record<string, { slots: Map<string, number>; total: number }> = {};
@@ -277,60 +271,25 @@ export default function RollingView({ date, events, sources, people, t, locale, 
                 {displayedPeople.length > 0 ? (
                   displayedPeople.map(person => {
                     const personDisplays = eventsByDate[dateStr]?.[person.id] || [];
-                    const compareSlots = compareSlotsByDate[dateStr] ?? [];
                     return (
                       <div
                         key={person.id}
                         className="border-r border-gray-100 dark:border-gray-800 last:border-r-0 flex flex-col overflow-hidden"
                         style={{ backgroundColor: hexWithAlpha(person.color, isEvenRow ? 0.12 : 0.06) }}
                       >
-                        {compareTimeSlots ? (
-                          <div className="flex flex-col">
-                            {compareSlots.length === 0 ? (
-                              <div className="px-2 py-2 text-[11px] text-gray-300 dark:text-gray-600">&nbsp;</div>
-                            ) : (
-                              compareSlots.map(slot => {
-                                const list = slot.byPerson[person.id] ?? [];
-                                const first = list[0];
-                                return (
-                                  <div key={slot.key} className="h-10 px-1 py-0.5 border-b border-gray-100 dark:border-gray-800 last:border-b-0 overflow-hidden">
-                                    {first ? (
-                                      <button
-                                        onClick={() => onEventClick?.(first)}
-                                        className="w-full h-full text-left px-1.5 py-0.5 rounded text-[11px] font-medium text-white hover:opacity-90 flex flex-col justify-center"
-                                        style={{ backgroundColor: person.color }}
-                                        title={first.title}
-                                      >
-                                        <div className="flex items-baseline gap-1 overflow-hidden">
-                                          <span className="truncate flex-1">{first.title}</span>
-                                          {list.length > 1 && <span className="flex-shrink-0 opacity-85">+{list.length - 1}</span>}
-                                        </div>
-                                        {slot.key !== 'all-day' && (
-                                          <div className="opacity-85 text-[10px] leading-none mt-0.5">{formatTzTime(first.start_date, timezone)}</div>
-                                        )}
-                                      </button>
-                                    ) : null}
-                                  </div>
-                                );
-                              })
-                            )}
-                          </div>
-                        ) : (
-                          <DayCell
-                            eventDisplays={personDisplays}
-                            sources={sources}
-                            people={people}
-                            isToday={today}
-                            maxEvents={3}
-                            hideLocation
-                            timezone={timezone}
-                            onEventClick={onEventClick}
-                            eventLanes={eventLanes}
-                            singleDaySlots={singleDaySlots}
-                            totalSingleSlots={totalSingleSlots}
-                            sharedMaxLane={sharedMaxLane}
-                          />
-                        )}
+                        <DayCell
+                          eventDisplays={personDisplays}
+                          sources={sources}
+                          people={people}
+                          isToday={today}
+                          hideLocation
+                          timezone={timezone}
+                          onEventClick={onEventClick}
+                          eventLanes={eventLanes}
+                          singleDaySlots={compareTimeSlots ? singleDaySlots : undefined}
+                          totalSingleSlots={compareTimeSlots ? totalSingleSlots : undefined}
+                          sharedMaxLane={compareTimeSlots ? sharedMaxLane : undefined}
+                        />
                       </div>
                     );
                   })

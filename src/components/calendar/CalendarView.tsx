@@ -86,7 +86,7 @@ function navigateDate(view: ViewType, date: Date, direction: 'prev' | 'next'): D
   }
 }
 
-const VIEW_ORDER: ViewType[] = ['month', 'week', 'rolling', 'compare', 'agenda'];
+const VIEW_ORDER: ViewType[] = ['month', 'week', 'rolling', 'agenda'];
 
 function MonthIcon({ active }: { active: boolean }) {
   return (
@@ -175,7 +175,7 @@ const VIEW_ICONS: Record<ViewType, (active: boolean) => React.ReactNode> = {
 export default function CalendarView({
   people, sources, t, locale, defaultView, appName, dateFormat, timezone, rollingDays,
 }: CalendarViewProps) {
-  const [view, setView] = useState<ViewType>(defaultView);
+  const [view, setView] = useState<ViewType>(defaultView === 'compare' ? 'rolling' : defaultView);
   const [date, setDate] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
@@ -183,6 +183,7 @@ export default function CalendarView({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [compareAligned, setCompareAligned] = useState(true);
 
   useEffect(() => {
     setDark(document.documentElement.classList.contains('dark'));
@@ -348,6 +349,35 @@ export default function CalendarView({
           ))}
         </div>
 
+        {/* Compact / aligned toggle — visible for month, week, and rolling views */}
+        {(view === 'month' || view === 'week' || view === 'rolling') && (
+          <button
+            onClick={() => setCompareAligned(a => !a)}
+            className={`p-1.5 rounded-lg transition-colors shrink-0 ${
+              compareAligned
+                ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+            }`}
+            title={compareAligned ? 'Switch to compact layout' : 'Switch to aligned layout'}
+          >
+            {compareAligned ? (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="2" y="3" width="20" height="4" rx="1" />
+                <rect x="2" y="10" width="20" height="4" rx="1" />
+                <rect x="2" y="17" width="20" height="4" rx="1" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="2" y="3" width="20" height="2.5" rx="0.5" />
+                <rect x="2" y="7.5" width="20" height="2.5" rx="0.5" />
+                <rect x="2" y="12" width="20" height="2.5" rx="0.5" />
+                <rect x="2" y="16.5" width="20" height="2.5" rx="0.5" />
+                <rect x="2" y="21" width="20" height="2.5" rx="0.5" />
+              </svg>
+            )}
+          </button>
+        )}
+
         {/* Dark mode toggle */}
         <button
           onClick={toggleDark}
@@ -415,16 +445,13 @@ export default function CalendarView({
         onTouchEnd={handleTouchEnd}
       >
         {view === 'month' && (
-          <MonthView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} />
+          <MonthView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} compareTimeSlots={compareAligned} />
         )}
         {view === 'week' && (
-          <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} />
+          <WeekView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} compareTimeSlots={compareAligned} />
         )}
         {view === 'rolling' && (
-          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} rollingDays={rollingDays} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} />
-        )}
-        {view === 'compare' && (
-          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} rollingDays={rollingDays} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} compareTimeSlots />
+          <RollingView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} rollingDays={rollingDays} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} compareTimeSlots={compareAligned} />
         )}
         {view === 'agenda' && (
           <AgendaView date={date} events={events} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />
