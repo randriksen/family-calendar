@@ -75,7 +75,7 @@ export function getEventColor(
 export default function EventBadge({ event, sources, people, timezone, compact = false, hideLocation = false, position = 'single', onClick }: EventBadgeProps) {
   const color = getEventColor(event, sources, people);
   const textColor = getTextColor(color);
-  const isSingleAllDay = position === 'single' && !!event.all_day;
+  const isSingleAllDay = position === 'single' && event.all_day === 1;
 
   if (compact) {
     return (
@@ -111,7 +111,14 @@ export default function EventBadge({ event, sources, people, timezone, compact =
   }
 
   // First day of multi-day event OR single-day event
-  const timeStr = !event.all_day ? formatTzTime(event.start_date, timezone) : '';
+  const isTimed = !event.all_day;
+  const startTimeStr = isTimed ? formatTzTime(event.start_date, timezone) : '';
+  const endTimeStr = isTimed && position === 'single' && event.end_date
+    ? formatTzTime(event.end_date, timezone)
+    : '';
+  const timeStr = startTimeStr && endTimeStr && endTimeStr !== startTimeStr
+    ? `${startTimeStr} – ${endTimeStr}`
+    : startTimeStr;
 
   // 'first': flat bottom so the continuation bar below connects flush
   // 'single': fully rounded

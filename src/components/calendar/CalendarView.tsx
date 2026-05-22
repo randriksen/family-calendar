@@ -13,6 +13,7 @@ import WeekView from './WeekView';
 import RollingView from './RollingView';
 import AgendaView from './AgendaView';
 import EventDetailModal from './EventDetailModal';
+import SearchOverlay from './SearchOverlay';
 
 interface CalendarViewProps {
   people: Person[];
@@ -184,6 +185,7 @@ export default function CalendarView({
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [compareAligned, setCompareAligned] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     setDark(document.documentElement.classList.contains('dark'));
@@ -221,6 +223,17 @@ export default function CalendarView({
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [view, date, fetchEvents]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key === 'k' && (e.ctrlKey || e.metaKey)) || (e.key === '/' && !e.ctrlKey && !e.metaKey && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement))) {
+        e.preventDefault();
+        setSearchOpen(o => !o);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
 
   const handleViewChange = (newView: ViewType) => {
     setView(newView);
@@ -378,6 +391,32 @@ export default function CalendarView({
           </button>
         )}
 
+        {/* Search */}
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="p-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0"
+          aria-label="Search events"
+          title="Search events (Ctrl+K)"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
+
+        {/* Print */}
+        <a
+          href={`/print?month=${format(date, 'yyyy-MM')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0"
+          aria-label="Print view"
+          title="Print view"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+        </a>
+
         {/* Dark mode toggle */}
         <button
           onClick={toggleDark}
@@ -457,6 +496,18 @@ export default function CalendarView({
           <AgendaView date={date} events={events} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />
         )}
       </main>
+
+      {/* ── Search overlay ─────────────────────────────────────────────── */}
+      {searchOpen && (
+        <SearchOverlay
+          people={people}
+          sources={sources}
+          timezone={timezone}
+          dateFormat={dateFormat}
+          onEventClick={setSelectedEvent}
+          onClose={() => setSearchOpen(false)}
+        />
+      )}
 
       {/* ── Event detail modal ─────────────────────────────────────────── */}
       {selectedEvent && (

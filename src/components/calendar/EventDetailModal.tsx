@@ -179,7 +179,7 @@ export default function EventDetailModal({
               ? <>{dateStr} – {endStr}</>
               : <>{dateStr}{endStr && endStr !== dateStr ? ` – ${endStr.slice(-5)}` : ''}</>
             }
-            {event.all_day && <span className="ml-1 text-xs text-gray-400">(all day)</span>}
+            {!!event.all_day && <span className="ml-1 text-xs text-gray-400">(all day)</span>}
           </Row>
 
           {/* Location */}

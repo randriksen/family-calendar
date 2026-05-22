@@ -32,6 +32,10 @@ A self-hosted family wall calendar that aggregates multiple iCal feeds into a si
 
 ## Screenshots
 
+### Demo
+![Family Calendar demo](docs/screenshots/family-calendar-demo.gif)
+Quick tour of the Family Calendar UI, including view switching and event layout behavior.
+
 ### Rolling view — compact layout (toggle off)
 ![Rolling view compact](docs/screenshots/rolling-compact.png)
 

@@ -203,7 +203,12 @@ export default function AgendaView({ date, events, sources, people, t, locale, t
                         {group.items.map(({ event, persons }, idx) => {
                           const color = getEventColor(event, sources, people);
                           const textColor = getTextColor(color);
-                          const time = !event.all_day ? formatTzTime(event.start_date, timezone) : '';
+                          const isTimed = !event.all_day;
+                          const startTime = isTimed ? formatTzTime(event.start_date, timezone) : '';
+                          const endTime = isTimed && event.end_date ? formatTzTime(event.end_date, timezone) : '';
+                          const time = startTime && endTime && endTime !== startTime
+                            ? `${startTime} – ${endTime}`
+                            : startTime;
 
                           return (
                             <div

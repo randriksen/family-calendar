@@ -160,7 +160,7 @@ export default function DayCell({
                     className="flex items-center gap-1 text-[11px] font-medium truncate leading-none"
                     style={{ color: textColor }}
                   >
-                    {event.all_day && (
+                    {event.all_day === 1 && (
                       <span className="flex-shrink-0 uppercase tracking-wide text-[9px] font-bold opacity-90">All day</span>
                     )}
                     {timeStr && (

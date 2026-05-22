@@ -396,6 +396,21 @@ export function getEvents(startDate: string, endDate: string, personIds?: string
   ).all(endDate, startDate, startDate);
 }
 
+export function searchEvents(query: string, limit = 30) {
+  const db = getDb();
+  const q = `%${query}%`;
+  return db.prepare(`
+    SELECT * FROM events
+    WHERE title LIKE ? OR description LIKE ? OR location LIKE ?
+    ORDER BY start_date ASC
+    LIMIT ?
+  `).all(q, q, q, limit) as Array<{
+    id: string; ical_uid: string | null; source_id: string; person_id: string;
+    title: string; start_date: string; end_date: string | null;
+    all_day: number; location: string | null; description: string | null;
+  }>;
+}
+
 export function getEventsBySource(sourceId: string): Array<{
   ical_uid: string;
   title: string;

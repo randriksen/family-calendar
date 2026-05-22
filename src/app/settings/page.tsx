@@ -9,6 +9,43 @@ import DisplaySettings from '@/components/settings/DisplaySettings';
 
 type Tab = 'people' | 'calendars' | 'display' | 'about';
 
+function BackupButton() {
+  const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
+
+  const handleBackup = async () => {
+    setState('busy');
+    try {
+      const res = await fetch('/api/backup');
+      if (!res.ok) throw new Error('Backup failed');
+      const blob = await res.blob();
+      const disposition = res.headers.get('Content-Disposition') ?? '';
+      const match = disposition.match(/filename="([^"]+)"/);
+      const filename = match?.[1] ?? 'family-calendar-backup.db';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      setState('done');
+      setTimeout(() => setState('idle'), 3000);
+    } catch {
+      setState('error');
+      setTimeout(() => setState('idle'), 3000);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleBackup}
+      disabled={state === 'busy'}
+      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-gray-600 dark:text-gray-300 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+    >
+      {state === 'busy' ? 'Backing up…' : state === 'done' ? 'Downloaded ✓' : state === 'error' ? 'Failed ✗' : 'Download database backup'}
+    </button>
+  );
+}
+
 interface BuildInfo {
   version: string;
   buildDate: string;
@@ -161,7 +198,7 @@ export default function SettingsPage() {
               <div className="pt-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500 space-y-1">
                 <div>Built with Next.js 14, SQLite, node-ical, date-fns</div>
                 <div>PWA-ready — add to home screen for kiosk use</div>
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <a
                     href="/api/events/refresh"
                     onClick={async e => {
@@ -173,6 +210,7 @@ export default function SettingsPage() {
                   >
                     Refresh all calendars now
                   </a>
+                  <BackupButton />
                 </div>
               </div>
             </div>
