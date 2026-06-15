@@ -34,20 +34,20 @@ function getEventRange(view: ViewType, date: Date, rollingDays: number): { start
   }
 }
 
-function LiveClock({ timezone }: { timezone: string }) {
+function LiveClock({ timezone, locale }: { timezone: string; locale: string }) {
   const [time, setTime] = useState('');
   const [dateStr, setDateStr] = useState('');
 
   useEffect(() => {
     const update = () => {
       const now = new Date();
-      setTime(new Intl.DateTimeFormat('en-GB', { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false }).format(now));
-      setDateStr(new Intl.DateTimeFormat('en-GB', { timeZone: timezone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now));
+      setTime(new Intl.DateTimeFormat(locale, { timeZone: timezone, hour: '2-digit', minute: '2-digit', hour12: false }).format(now));
+      setDateStr(new Intl.DateTimeFormat(locale, { timeZone: timezone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now));
     };
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, [timezone]);
+  }, [timezone, locale]);
 
   return (
     <div className="flex items-center justify-between w-full">
@@ -63,8 +63,9 @@ export default function DisplayScreen({
   people, sources, t, locale, timezone, dateFormat, rollingDays, appName,
 }: DisplayScreenProps) {
   const [views, setViews] = useState<string[]>(initialViews);
+  const [rotationInterval, setRotationInterval] = useState(rotationIntervalSeconds);
   const [viewIndex, setViewIndex] = useState(0);
-  const [date] = useState(new Date());
+  const [date, setDate] = useState(() => new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const currentView = (views[viewIndex] ?? 'month') as ViewType;
@@ -77,6 +78,12 @@ export default function DisplayScreen({
     } catch { /* ignore */ }
   }, [date, rollingDays]);
 
+  // Advance date every minute so views stay current after midnight
+  useEffect(() => {
+    const id = setInterval(() => setDate(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   // Initial + recurring event fetch
   useEffect(() => {
     fetchEvents(currentView);
@@ -84,7 +91,7 @@ export default function DisplayScreen({
     return () => clearInterval(id);
   }, [currentView, fetchEvents]);
 
-  // Re-fetch display config every 30s so view changes from Settings take effect
+  // Re-fetch display config every 30s so view/rotation changes from Settings take effect
   useEffect(() => {
     const id = setInterval(async () => {
       try {
@@ -92,27 +99,33 @@ export default function DisplayScreen({
         if (res.ok) {
           const d: Display = await res.json();
           setViews(d.views);
+          setRotationInterval(d.rotation_interval_seconds);
         }
       } catch { /* ignore */ }
     }, 30_000);
     return () => clearInterval(id);
   }, [displayId]);
 
+  // Clamp viewIndex when views list shrinks
+  useEffect(() => {
+    setViewIndex(i => Math.min(i, views.length - 1));
+  }, [views.length]);
+
   // View rotation
   useEffect(() => {
-    if (rotationIntervalSeconds <= 0 || views.length <= 1) return;
+    if (rotationInterval <= 0 || views.length <= 1) return;
     const id = setInterval(() => {
       setViewIndex(i => (i + 1) % views.length);
-    }, rotationIntervalSeconds * 1000);
+    }, rotationInterval * 1000);
     return () => clearInterval(id);
-  }, [rotationIntervalSeconds, views.length]);
+  }, [rotationInterval, views.length]);
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-gray-900">
       {/* Top bar */}
       <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center relative shadow-sm">
         <span className="text-base font-bold text-gray-900 dark:text-gray-100">{appName}</span>
-        <LiveClock timezone={timezone} />
+        <LiveClock timezone={timezone} locale={locale} />
       </header>
 
       {/* Calendar content */}

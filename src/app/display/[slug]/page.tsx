@@ -3,6 +3,9 @@ import { getLocaleData } from '@/lib/i18n';
 import DisplayScreen from '@/components/display/DisplayScreen';
 import type { Person, CalendarSource } from '@/types';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function DisplayPage({ params }: { params: { slug: string } }) {
   const display = getDisplayBySlug(params.slug);
   const settings = getSettings();
@@ -27,10 +30,17 @@ export default function DisplayPage({ params }: { params: { slug: string } }) {
     );
   }
 
+  let initialViews: string[];
+  try {
+    initialViews = JSON.parse(display.views);
+  } catch {
+    initialViews = ['month'];
+  }
+
   return (
     <DisplayScreen
       displayId={display.id}
-      initialViews={JSON.parse(display.views)}
+      initialViews={initialViews}
       rotationIntervalSeconds={display.rotation_interval_seconds}
       people={people}
       sources={sources}
