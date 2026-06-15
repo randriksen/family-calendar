@@ -111,6 +111,15 @@ function initSchema(db: Database.Database): void {
       value TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS displays (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      views TEXT NOT NULL DEFAULT '["month"]',
+      rotation_interval_seconds INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_events_person_id ON events(person_id);
     CREATE INDEX IF NOT EXISTS idx_events_start_date ON events(start_date);
     CREATE INDEX IF NOT EXISTS idx_events_source_id ON events(source_id);
@@ -492,6 +501,47 @@ export function updateSettings(updates: Record<string, string>) {
     }
   });
   tx();
+}
+
+// ── Displays ──────────────────────────────────────────────────────────────────
+
+export interface DisplayRow {
+  id: string;
+  name: string;
+  slug: string;
+  views: string; // JSON-encoded string[]
+  rotation_interval_seconds: number;
+  created_at: string;
+}
+
+export function getDisplays(): DisplayRow[] {
+  return getDb().prepare('SELECT * FROM displays ORDER BY created_at ASC').all() as DisplayRow[];
+}
+
+export function getDisplayById(id: string): DisplayRow | null {
+  return (getDb().prepare('SELECT * FROM displays WHERE id = ?').get(id) as DisplayRow) ?? null;
+}
+
+export function getDisplayBySlug(slug: string): DisplayRow | null {
+  return (getDb().prepare('SELECT * FROM displays WHERE slug = ?').get(slug) as DisplayRow) ?? null;
+}
+
+export function createDisplay(name: string, slug: string, views: string[], rotationIntervalSeconds: number): string {
+  const id = uuidv4();
+  getDb()
+    .prepare('INSERT INTO displays (id, name, slug, views, rotation_interval_seconds) VALUES (?, ?, ?, ?, ?)')
+    .run(id, name, slug, JSON.stringify(views), rotationIntervalSeconds);
+  return id;
+}
+
+export function updateDisplay(id: string, name: string, slug: string, views: string[], rotationIntervalSeconds: number): void {
+  getDb()
+    .prepare('UPDATE displays SET name=?, slug=?, views=?, rotation_interval_seconds=? WHERE id=?')
+    .run(name, slug, JSON.stringify(views), rotationIntervalSeconds, id);
+}
+
+export function deleteDisplay(id: string): void {
+  getDb().prepare('DELETE FROM displays WHERE id=?').run(id);
 }
 
 export { UPLOADS_PATH };
