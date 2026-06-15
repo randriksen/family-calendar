@@ -18,7 +18,7 @@
     "rolling": "Rolling",
     "compare": "Compare",
     "agenda": "Agenda",
-    "day": "Day Slots"
+    "day": "Day"
   },
   "calendar": {
     "weekNumber": "Wk",
@@ -67,7 +67,8 @@
       "people": "People",
       "calendars": "Calendars",
       "display": "Display",
-      "about": "About"
+      "about": "About",
+      "screens": "Screens"
     },
     "people": {
       "title": "Family Members",
@@ -127,6 +128,23 @@
       "title": "About",
       "version": "Version",
       "description": "A family calendar app that aggregates iCal calendars for all family members into a single wall-calendar view. Built with Next.js, SQLite, and love."
+    },
+    "screens": {
+      "title": "Display Screens",
+      "addScreen": "Add Screen",
+      "noScreens": "No display screens yet",
+      "name": "Name",
+      "slug": "URL slug",
+      "url": "URL",
+      "copyUrl": "Copy URL",
+      "copied": "Copied!",
+      "currentView": "Current View",
+      "rotation": "Rotate through views",
+      "rotationInterval": "Switch every",
+      "delete": "Delete",
+      "confirmDelete": "Delete this display screen?",
+      "save": "Save",
+      "cancel": "Cancel"
     }
   },
   "agenda": {

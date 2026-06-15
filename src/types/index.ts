@@ -48,6 +48,15 @@ export interface Settings {
   rolling_days: string;
 }
 
+export interface Display {
+  id: string;
+  name: string;
+  slug: string;
+  views: string[];
+  rotation_interval_seconds: number;
+  created_at: string;
+}
+
 export type ViewType = 'month' | 'week' | 'rolling' | 'compare' | 'agenda' | 'day';
 
 export interface DateRange {
@@ -143,6 +152,7 @@ export interface LocaleData {
       calendars: string;
       display: string;
       about: string;
+      screens: string;
     };
     people: {
       title: string;
@@ -202,6 +212,23 @@ export interface LocaleData {
       title: string;
       version: string;
       description: string;
+    };
+    screens: {
+      title: string;
+      addScreen: string;
+      noScreens: string;
+      name: string;
+      slug: string;
+      url: string;
+      copyUrl: string;
+      copied: string;
+      currentView: string;
+      rotation: string;
+      rotationInterval: string;
+      delete: string;
+      confirmDelete: string;
+      save: string;
+      cancel: string;
     };
   };
   agenda: {

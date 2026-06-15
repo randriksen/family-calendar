@@ -17,7 +17,8 @@
     "week": "Uke",
     "rolling": "Rullende",
     "compare": "Sammenlign",
-    "agenda": "Agenda"
+    "agenda": "Agenda",
+    "day": "Dag"
   },
   "calendar": {
     "weekNumber": "Uke",
@@ -66,7 +67,8 @@
       "people": "Personer",
       "calendars": "Kalendere",
       "display": "Utseende",
-      "about": "Om"
+      "about": "Om",
+      "screens": "Skjermer"
     },
     "people": {
       "title": "Familiemedlemmer",
@@ -126,6 +128,23 @@
       "title": "Om",
       "version": "Versjon",
       "description": "En familiekalender-app som samler iCal-kalendere for alle familiemedlemmer i én veggkalender-visning. Bygget med Next.js, SQLite og kjærlighet."
+    },
+    "screens": {
+      "title": "Visningsskjermer",
+      "addScreen": "Legg til skjerm",
+      "noScreens": "Ingen visningsskjermer ennå",
+      "name": "Navn",
+      "slug": "URL-slug",
+      "url": "URL",
+      "copyUrl": "Kopier URL",
+      "copied": "Kopiert!",
+      "currentView": "Gjeldende visning",
+      "rotation": "Roter mellom visninger",
+      "rotationInterval": "Bytt hvert",
+      "delete": "Slett",
+      "confirmDelete": "Slette denne visningsskjermen?",
+      "save": "Lagre",
+      "cancel": "Avbryt"
     }
   },
   "agenda": {
