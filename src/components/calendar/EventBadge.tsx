@@ -126,7 +126,7 @@ export default function EventBadge({ event, sources, people, timezone, compact =
 
   return (
     <div
-      className={`flex flex-col px-1.5 py-0.5 ${roundedClass} text-xs w-full cursor-pointer hover:opacity-90 transition-opacity overflow-hidden ${isSingleAllDay ? 'font-semibold shadow-sm' : 'font-medium'}`}
+      className={`flex flex-col px-1.5 py-0.5 2xl:px-2 2xl:py-1 ${roundedClass} text-xs 2xl:text-sm w-full cursor-pointer hover:opacity-90 transition-opacity overflow-hidden ${isSingleAllDay ? 'font-semibold shadow-sm' : 'font-medium'}`}
       style={{
         backgroundColor: color,
         color: textColor,
@@ -144,7 +144,7 @@ export default function EventBadge({ event, sources, people, timezone, compact =
         <span className="truncate">{event.title}</span>
       </div>
       {event.location && !hideLocation && (
-        <div className="truncate opacity-75 font-normal" style={{ fontSize: '0.65rem' }}>
+        <div className="truncate opacity-75 font-normal text-[0.65rem] 2xl:text-xs">
           📍 {event.location}
         </div>
       )}

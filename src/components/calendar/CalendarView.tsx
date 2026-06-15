@@ -12,6 +12,7 @@ import MonthView from './MonthView';
 import WeekView from './WeekView';
 import RollingView from './RollingView';
 import AgendaView from './AgendaView';
+import SlotDayView from './SlotDayView';
 import EventDetailModal from './EventDetailModal';
 import SearchOverlay from './SearchOverlay';
 
@@ -63,7 +64,8 @@ function getDateRange(view: ViewType, date: Date, rollingDays: number): { start:
     case 'agenda':
       return { start: date, end: addDays(date, 90) };
     case 'day':
-      return { start: date, end: date };
+      // Fetch ±1 day so timezone-shifted events spanning the boundary are included.
+      return { start: addDays(date, -1), end: addDays(date, 1) };
     default:
       return { start: date, end: date };
   }
@@ -87,7 +89,7 @@ function navigateDate(view: ViewType, date: Date, direction: 'prev' | 'next'): D
   }
 }
 
-const VIEW_ORDER: ViewType[] = ['month', 'week', 'rolling', 'agenda'];
+const VIEW_ORDER: ViewType[] = ['month', 'week', 'rolling', 'agenda', 'day'];
 
 function MonthIcon({ active }: { active: boolean }) {
   return (
@@ -186,9 +188,17 @@ export default function CalendarView({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [compareAligned, setCompareAligned] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [hourHeight, setHourHeight] = useState(64);
 
   useEffect(() => {
     setDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  useEffect(() => {
+    const update = () => setHourHeight(window.innerWidth >= 1536 ? 96 : 64);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
   }, []);
 
   const toggleDark = () => {
@@ -304,9 +314,9 @@ export default function CalendarView({
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-gray-900">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-3 py-2 flex items-center gap-2 shadow-sm z-20">
+      <header className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-3 py-2 2xl:px-5 2xl:py-3 flex items-center gap-2 2xl:gap-3 shadow-sm z-20">
         {/* App name — desktop only */}
-        <h1 className="text-base font-bold text-gray-900 dark:text-gray-100 hidden sm:block mr-2 shrink-0">
+        <h1 className="text-base 2xl:text-xl font-bold text-gray-900 dark:text-gray-100 hidden sm:block mr-2 shrink-0">
           {appName}
         </h1>
 
@@ -322,7 +332,7 @@ export default function CalendarView({
           className="p-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0"
           aria-label={t.nav.prev}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 2xl:w-5 2xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
@@ -331,13 +341,13 @@ export default function CalendarView({
           className="p-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors shrink-0"
           aria-label={t.nav.next}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 2xl:w-5 2xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
 
         {/* Date label — grows to fill available space */}
-        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1 min-w-0 truncate">
+        <span className="text-sm 2xl:text-base font-semibold text-gray-700 dark:text-gray-300 flex-1 min-w-0 truncate">
           {navLabel}
         </span>
 
@@ -351,7 +361,7 @@ export default function CalendarView({
             <button
               key={v}
               onClick={() => handleViewChange(v)}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-all ${
+              className={`px-3 py-1 2xl:px-4 2xl:py-1.5 rounded-md text-sm 2xl:text-base font-medium transition-all ${
                 view === v
                   ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
@@ -494,6 +504,9 @@ export default function CalendarView({
         )}
         {view === 'agenda' && (
           <AgendaView date={date} events={events} sources={sources} people={people} t={t} locale={locale} timezone={timezone} onEventClick={setSelectedEvent} />
+        )}
+        {view === 'day' && (
+          <SlotDayView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} hourHeight={hourHeight} />
         )}
       </main>
 

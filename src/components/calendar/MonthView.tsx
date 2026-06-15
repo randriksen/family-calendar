@@ -152,9 +152,9 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
               style={{ borderTopColor: person.color, borderTopWidth: 3 }}
             >
               {person.photo_url && (
-                <img src={person.photo_url} alt={person.name} className="w-7 h-7 rounded-full mx-auto mb-0.5 object-cover" />
+                <img src={person.photo_url} alt={person.name} className="w-7 h-7 2xl:w-9 2xl:h-9 rounded-full mx-auto mb-0.5 object-cover" />
               )}
-              <span className="font-bold text-xs truncate w-full text-center" style={{ color: person.color }}>
+              <span className="font-bold text-xs 2xl:text-sm truncate w-full text-center" style={{ color: person.color }}>
                 {person.name}
               </span>
             </div>
@@ -201,20 +201,20 @@ export default function MonthView({ date, events, sources, people, t, locale, ti
                 }`}
               >
                 {weekNum !== null ? (
-                  <span className="text-[10px] font-medium text-gray-300 dark:text-gray-600 leading-none mb-0.5">
+                  <span className="text-[10px] 2xl:text-xs font-medium text-gray-300 dark:text-gray-600 leading-none mb-0.5">
                     {weekNum}
                   </span>
                 ) : (
                   <span className="text-[10px] leading-none mb-0.5 invisible">·</span>
                 )}
                 <span
-                  className={`text-sm font-bold leading-none w-7 h-7 flex items-center justify-center rounded-full ${
+                  className={`text-sm 2xl:text-base font-bold leading-none w-7 h-7 2xl:w-9 2xl:h-9 flex items-center justify-center rounded-full ${
                     today ? 'bg-blue-600 text-white' : ''
                   }`}
                 >
                   {day.getDate()}
                 </span>
-                <span className="text-[10px] leading-none mt-0.5 font-medium">
+                <span className="text-[10px] 2xl:text-xs leading-none mt-0.5 font-medium">
                   {shortDayName}
                 </span>
                 {holiday && (
