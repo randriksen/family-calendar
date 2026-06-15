@@ -6,8 +6,9 @@ import { getLocaleData } from '@/lib/i18n';
 import PeopleSettings from '@/components/settings/PeopleSettings';
 import CalendarSettings from '@/components/settings/CalendarSettings';
 import DisplaySettings from '@/components/settings/DisplaySettings';
+import ScreensSettings from '@/components/settings/ScreensSettings';
 
-type Tab = 'people' | 'calendars' | 'display' | 'about';
+type Tab = 'people' | 'calendars' | 'display' | 'screens' | 'about';
 
 function BackupButton() {
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
@@ -107,6 +108,7 @@ export default function SettingsPage() {
     { id: 'people', label: t.settings.tabs.people },
     { id: 'calendars', label: t.settings.tabs.calendars },
     { id: 'display', label: t.settings.tabs.display },
+    { id: 'screens', label: t.settings.tabs.screens },
     { id: 'about', label: t.settings.tabs.about },
   ];
 
@@ -167,6 +169,9 @@ export default function SettingsPage() {
             t={t}
             onSaved={handleSettingsSaved}
           />
+        )}
+        {activeTab === 'screens' && (
+          <ScreensSettings t={t} />
         )}
         {activeTab === 'about' && (
           <div className="space-y-4">
