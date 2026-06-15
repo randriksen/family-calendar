@@ -71,25 +71,28 @@ export default function ScreensSettings({ t }: ScreensSettingsProps) {
   };
 
   const save = async () => {
+    const views = editRotation ? (editViews.length > 0 ? editViews : ['month']) : [editViews[0] ?? 'month'];
     setSaving(true);
-    const body = {
-      name: editName.trim(),
-      slug: editSlug,
-      views: editRotation ? editViews : [editViews[0] ?? 'month'],
-      rotation_interval_seconds: editRotation ? editInterval : 0,
-    };
-    const res = creating
-      ? await fetch('/api/displays', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      : await fetch(`/api/displays/${selected!.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    setSaving(false);
-    if (res.ok) { back(); await loadDisplays(); }
+    try {
+      const body = {
+        name: editName.trim(),
+        slug: editSlug,
+        views,
+        rotation_interval_seconds: editRotation ? editInterval : 0,
+      };
+      const res = creating
+        ? await fetch('/api/displays', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        : await fetch(`/api/displays/${selected!.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.ok) { back(); await loadDisplays(); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const deleteScreen = async () => {
     if (!selected || !confirm(ts.confirmDelete)) return;
-    await fetch(`/api/displays/${selected.id}`, { method: 'DELETE' });
-    back();
-    await loadDisplays();
+    const res = await fetch(`/api/displays/${selected.id}`, { method: 'DELETE' });
+    if (res.ok) { back(); await loadDisplays(); }
   };
 
   const copyUrl = async (slug: string) => {
@@ -101,7 +104,7 @@ export default function ScreensSettings({ t }: ScreensSettingsProps) {
   const showDetail = selected !== null || creating;
 
   if (showDetail) {
-    const displayUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/display/${editSlug}`;
+    const displayUrl = `${window.location.origin}/display/${editSlug}`;
     return (
       <div className="space-y-4">
         <button onClick={back} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
@@ -256,7 +259,7 @@ export default function ScreensSettings({ t }: ScreensSettingsProps) {
           <button
             key={d.id}
             onClick={() => openScreen(d)}
-            className="w-full text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-4 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+            className="w-full text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-4 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
