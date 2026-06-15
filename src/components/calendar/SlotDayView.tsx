@@ -6,7 +6,7 @@ import type { CalendarEvent, CalendarSource, Person, LocaleData } from '@/types'
 import { getHoliday } from '@/lib/i18n';
 import { getEventDateRangeKeys, formatTzTime } from '@/lib/tz';
 
-const DEFAULT_hourHeight = 64; // px — 4rem, 1px ≈ 0.9375 minutes
+const DEFAULT_HOUR_HEIGHT = 64; // px — 4rem, 1px ≈ 0.9375 minutes
 const TIME_COL_W  = 52; // px for the time-label gutter
 const MIN_EV_H    = 22; // minimum rendered event height
 
@@ -70,7 +70,7 @@ function assignLanes(raw: Omit<Positioned, 'lane' | 'totalLanes'>[]): Positioned
 }
 
 export default function SlotDayView({
-  date, events, sources, people, t, locale, dateFormat, timezone, onEventClick, singlePersonId, hourHeight = DEFAULT_hourHeight,
+  date, events, sources, people, t, locale, dateFormat, timezone, onEventClick, singlePersonId, hourHeight = DEFAULT_HOUR_HEIGHT,
 }: SlotDayViewProps) {
   const [filterPerson, setFilterPerson] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -98,7 +98,8 @@ export default function SlotDayView({
       ? Math.max(0, nowMin * PX_PER_MIN - 120)
       : 8 * hourHeight - 8;
     scrollRef.current.scrollTop = top;
-  }, [dayKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayKey, hourHeight]);
 
   const activePerson = singlePersonId ?? filterPerson;
   const displayPeople = activePerson ? people.filter(p => p.id === activePerson) : people;
