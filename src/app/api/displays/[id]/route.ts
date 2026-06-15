@@ -14,11 +14,15 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const existing = getDisplayById(params.id);
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     const body = await request.json();
     const { name, slug, views, rotation_interval_seconds } = body;
-    if (!name || !slug)
-      return NextResponse.json({ error: 'name and slug are required' }, { status: 400 });
-    updateDisplay(params.id, name, slug, Array.isArray(views) ? views : ['month'], rotation_interval_seconds ?? 0);
+    if (!name || typeof name !== 'string' || !name.trim())
+      return NextResponse.json({ error: 'name is required' }, { status: 400 });
+    if (!slug || typeof slug !== 'string' || !/^[a-z0-9-]+$/.test(slug))
+      return NextResponse.json({ error: 'slug must be lowercase letters, numbers, hyphens' }, { status: 400 });
+    updateDisplay(params.id, name.trim(), slug, Array.isArray(views) ? views : ['month'], rotation_interval_seconds ?? 0);
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
     if (err instanceof Error && err.message.includes('UNIQUE'))
@@ -30,6 +34,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const existing = getDisplayById(params.id);
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     deleteDisplay(params.id);
     return NextResponse.json({ ok: true });
   } catch (err) {
