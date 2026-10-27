@@ -57,7 +57,7 @@ export interface Display {
   created_at: string;
 }
 
-export type ViewType = 'month' | 'week' | 'rolling' | 'compare' | 'agenda' | 'day';
+export type ViewType = 'month' | 'week' | 'rolling' | 'compare' | 'agenda' | 'day' | 'schedule';
 
 export interface DateRange {
   start: Date;
@@ -103,6 +103,7 @@ export interface LocaleData {
     compare: string;
     agenda: string;
     day: string;
+    schedule: string;
   };
   calendar: {
     weekNumber: string;
@@ -178,6 +179,8 @@ export interface LocaleData {
       url: string;
       file: string;
       sourceColor: string;
+      editColor: string;
+      usePersonColor: string;
       lastFetched: string;
       never: string;
       refresh: string;

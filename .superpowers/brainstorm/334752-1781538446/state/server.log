@@ -1,0 +1,3 @@
+{"type":"server-started","port":62601,"host":"0.0.0.0","url_host":"localhost","url":"http://localhost:62601","screen_dir":"/home/ole/family-calendar/.superpowers/brainstorm/334752-1781538446/content","state_dir":"/home/ole/family-calendar/.superpowers/brainstorm/334752-1781538446/state"}
+{"type":"screen-added","file":"/home/ole/family-calendar/.superpowers/brainstorm/334752-1781538446/content/display-layouts.html"}
+{"type":"server-stopped","reason":"idle timeout"}

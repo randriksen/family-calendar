@@ -1,0 +1,5 @@
+{"type":"server-started","port":57694,"host":"0.0.0.0","url_host":"localhost","url":"http://localhost:57694","screen_dir":"/home/ole/family-calendar/.superpowers/brainstorm/382335-1781549931/content","state_dir":"/home/ole/family-calendar/.superpowers/brainstorm/382335-1781549931/state"}
+{"type":"screen-added","file":"/home/ole/family-calendar/.superpowers/brainstorm/382335-1781549931/content/settings-displays.html"}
+{"type":"screen-added","file":"/home/ole/family-calendar/.superpowers/brainstorm/382335-1781549931/content/display-page.html"}
+{"type":"screen-added","file":"/home/ole/family-calendar/.superpowers/brainstorm/382335-1781549931/content/waiting-2.html"}
+{"type":"server-stopped","reason":"idle timeout"}

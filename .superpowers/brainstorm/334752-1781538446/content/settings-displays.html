@@ -1,0 +1,160 @@
+<h2>Settings → Displays Tab</h2>
+<p class="subtitle">How the Displays tab looks on a phone — tap to select your preferred approach</p>
+
+<div class="split">
+
+  <div class="mockup">
+    <div class="mockup-header">Option A — List + Edit drawer</div>
+    <div class="mockup-body" style="font-family:sans-serif;font-size:12px;background:#f8fafc;padding:0;">
+
+      <!-- Settings tabs -->
+      <div style="display:flex;border-bottom:1px solid #e2e8f0;background:white;">
+        <div style="padding:8px 10px;font-size:10px;color:#64748b;">People</div>
+        <div style="padding:8px 10px;font-size:10px;color:#64748b;">Calendars</div>
+        <div style="padding:8px 10px;font-size:10px;color:#64748b;">Display</div>
+        <div style="padding:8px 10px;font-size:10px;color:#3b82f6;border-bottom:2px solid #3b82f6;font-weight:600;">Screens</div>
+        <div style="padding:8px 10px;font-size:10px;color:#64748b;">About</div>
+      </div>
+
+      <!-- Display list -->
+      <div style="padding:10px;display:flex;flex-direction:column;gap:6px;">
+
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:11px;color:#1e293b;">Living Room</div>
+            <div style="font-size:9px;color:#64748b;margin-top:1px;">/display/living-room · Month</div>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <button style="font-size:9px;background:#f1f5f9;border:none;border-radius:4px;padding:3px 7px;color:#3b82f6;cursor:pointer;">Copy URL</button>
+            <button style="font-size:9px;background:#3b82f6;color:white;border:none;border-radius:4px;padding:3px 7px;cursor:pointer;">Edit</button>
+          </div>
+        </div>
+
+        <div style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:11px;color:#1e293b;">Kitchen</div>
+            <div style="font-size:9px;color:#64748b;margin-top:1px;">/display/kitchen · Week → Day (30s)</div>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <button style="font-size:9px;background:#f1f5f9;border:none;border-radius:4px;padding:3px 7px;color:#3b82f6;cursor:pointer;">Copy URL</button>
+            <button style="font-size:9px;background:#3b82f6;color:white;border:none;border-radius:4px;padding:3px 7px;cursor:pointer;">Edit</button>
+          </div>
+        </div>
+
+        <button style="background:#3b82f6;color:white;border:none;border-radius:8px;padding:10px;font-size:11px;font-weight:600;width:100%;cursor:pointer;">+ Add Screen</button>
+      </div>
+
+      <!-- Edit form (inline below) -->
+      <div style="margin:0 10px 10px;background:white;border:1px solid #3b82f6;border-radius:8px;padding:10px;">
+        <div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:8px;">Edit: Living Room</div>
+
+        <div style="margin-bottom:6px;">
+          <div style="font-size:9px;color:#64748b;margin-bottom:2px;">Name</div>
+          <input style="width:100%;border:1px solid #e2e8f0;border-radius:4px;padding:4px 6px;font-size:10px;box-sizing:border-box;" value="Living Room" readonly />
+        </div>
+
+        <div style="margin-bottom:6px;">
+          <div style="font-size:9px;color:#64748b;margin-bottom:2px;">URL slug</div>
+          <input style="width:100%;border:1px solid #e2e8f0;border-radius:4px;padding:4px 6px;font-size:10px;box-sizing:border-box;" value="living-room" readonly />
+        </div>
+
+        <div style="margin-bottom:6px;">
+          <div style="font-size:9px;color:#64748b;margin-bottom:2px;">View</div>
+          <select style="width:100%;border:1px solid #e2e8f0;border-radius:4px;padding:4px 6px;font-size:10px;box-sizing:border-box;">
+            <option selected>Month</option>
+            <option>Week</option>
+            <option>Day</option>
+            <option>Agenda</option>
+            <option>Rolling</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:8px;">
+          <div style="font-size:9px;color:#64748b;margin-bottom:2px;">Rotation (optional)</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+            <span style="font-size:9px;background:#dbeafe;color:#1d4ed8;border-radius:4px;padding:2px 6px;">Month ✓</span>
+            <span style="font-size:9px;background:#f1f5f9;color:#64748b;border-radius:4px;padding:2px 6px;">Week</span>
+            <span style="font-size:9px;background:#f1f5f9;color:#64748b;border-radius:4px;padding:2px 6px;">Day</span>
+            <span style="font-size:9px;background:#f1f5f9;color:#64748b;border-radius:4px;padding:2px 6px;">Agenda</span>
+          </div>
+          <div style="font-size:9px;color:#64748b;margin-top:4px;">Rotate every <input type="number" value="60" style="width:36px;border:1px solid #e2e8f0;border-radius:4px;padding:2px 4px;font-size:9px;" readonly /> seconds</div>
+        </div>
+
+        <div style="display:flex;gap:4px;">
+          <button style="flex:1;background:#3b82f6;color:white;border:none;border-radius:6px;padding:6px;font-size:10px;font-weight:600;">Save</button>
+          <button style="background:#f1f5f9;color:#64748b;border:none;border-radius:6px;padding:6px 10px;font-size:10px;">Cancel</button>
+          <button style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:6px 10px;font-size:10px;">Delete</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Option B — Separate page per screen</div>
+    <div class="mockup-body" style="font-family:sans-serif;font-size:12px;background:#f8fafc;padding:0;">
+
+      <!-- Settings tabs -->
+      <div style="display:flex;border-bottom:1px solid #e2e8f0;background:white;">
+        <div style="padding:8px 10px;font-size:10px;color:#64748b;">People</div>
+        <div style="padding:8px 10px;font-size:10px;color:#64748b;">Calendars</div>
+        <div style="padding:8px 10px;font-size:10px;color:#64748b;">Display</div>
+        <div style="padding:8px 10px;font-size:10px;color:#3b82f6;border-bottom:2px solid #3b82f6;font-weight:600;">Screens</div>
+        <div style="padding:8px 10px;font-size:10px;color:#64748b;">About</div>
+      </div>
+
+      <!-- Display list as bigger tap targets -->
+      <div style="padding:10px;display:flex;flex-direction:column;gap:6px;">
+
+        <a style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:14px;display:flex;align-items:center;gap:10px;text-decoration:none;cursor:pointer;">
+          <div style="width:36px;height:36px;background:#dbeafe;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">📺</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:12px;color:#1e293b;">Living Room</div>
+            <div style="font-size:9px;color:#64748b;margin-top:1px;">Month view · /display/living-room</div>
+          </div>
+          <div style="color:#94a3b8;font-size:14px;">›</div>
+        </a>
+
+        <a style="background:white;border:1px solid #e2e8f0;border-radius:8px;padding:14px;display:flex;align-items:center;gap:10px;text-decoration:none;cursor:pointer;">
+          <div style="width:36px;height:36px;background:#dcfce7;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">🍳</div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:12px;color:#1e293b;">Kitchen</div>
+            <div style="font-size:9px;color:#64748b;margin-top:1px;">Week → Day (30s) · /display/kitchen</div>
+          </div>
+          <div style="color:#94a3b8;font-size:14px;">›</div>
+        </a>
+
+        <button style="background:#3b82f6;color:white;border:none;border-radius:8px;padding:14px;font-size:12px;font-weight:600;width:100%;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <span style="font-size:16px;">+</span> Add Screen
+        </button>
+      </div>
+
+      <!-- Individual screen detail -->
+      <div style="margin:0 10px 10px;background:white;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+        <div style="background:#1e293b;color:white;padding:10px 12px;font-size:10px;font-weight:600;">← Living Room</div>
+
+        <div style="padding:12px;display:flex;flex-direction:column;gap:10px;">
+          <!-- Quick view switcher - big tap targets -->
+          <div>
+            <div style="font-size:9px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:6px;">Current View</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+              <button style="background:#3b82f6;color:white;border:none;border-radius:6px;padding:10px;font-size:11px;font-weight:600;">Month ✓</button>
+              <button style="background:#f1f5f9;color:#64748b;border:none;border-radius:6px;padding:10px;font-size:11px;">Week</button>
+              <button style="background:#f1f5f9;color:#64748b;border:none;border-radius:6px;padding:10px;font-size:11px;">Day</button>
+              <button style="background:#f1f5f9;color:#64748b;border:none;border-radius:6px;padding:10px;font-size:11px;">Agenda</button>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:9px;color:#64748b;font-weight:600;text-transform:uppercase;margin-bottom:4px;">URL</div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px;font-size:9px;color:#3b82f6;font-family:monospace;">localhost:3000/display/living-room</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="text-align:center;margin-top:12px;">Option A keeps everything on one tab. Option B has a dedicated page per screen with larger tap targets — better for quick view switching from a phone.</p>

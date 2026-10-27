@@ -13,6 +13,7 @@ import WeekView from './WeekView';
 import RollingView from './RollingView';
 import AgendaView from './AgendaView';
 import SlotDayView from './SlotDayView';
+import ScheduleView from './ScheduleView';
 import EventDetailModal from './EventDetailModal';
 import SearchOverlay from './SearchOverlay';
 
@@ -47,6 +48,8 @@ function getNavigationLabel(view: ViewType, date: Date, t: LocaleData, locale: s
       return `${getMonthName(locale, date.getMonth())} ${date.getFullYear()}`;
     case 'day':
       return format(date, dateFormat);
+    case 'schedule':
+      return `${format(date, dateFormat)} – ${format(addDays(date, 6), dateFormat)}`;
     default:
       return '';
   }
@@ -66,6 +69,8 @@ function getDateRange(view: ViewType, date: Date, rollingDays: number): { start:
     case 'day':
       // Fetch ±1 day so timezone-shifted events spanning the boundary are included.
       return { start: addDays(date, -1), end: addDays(date, 1) };
+    case 'schedule':
+      return { start: addDays(date, -1), end: addDays(date, 8) };
     default:
       return { start: date, end: date };
   }
@@ -84,12 +89,14 @@ function navigateDate(view: ViewType, date: Date, direction: 'prev' | 'next'): D
       return addDays(date, delta * 14);
     case 'day':
       return addDays(date, delta);
+    case 'schedule':
+      return addDays(date, delta);
     default:
       return date;
   }
 }
 
-const VIEW_ORDER: ViewType[] = ['month', 'week', 'rolling', 'agenda', 'day'];
+const VIEW_ORDER: ViewType[] = ['month', 'week', 'rolling', 'agenda', 'day', 'schedule'];
 
 function MonthIcon({ active }: { active: boolean }) {
   return (
@@ -151,6 +158,17 @@ function DayIcon({ active }: { active: boolean }) {
   );
 }
 
+function ScheduleIcon({ active }: { active: boolean }) {
+  return (
+    <svg className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <rect x="3" y="3" width="4" height="18" rx="0.5" fill="currentColor" stroke="none" />
+      <rect x="9" y="3" width="4" height="18" rx="0.5" fill="currentColor" stroke="none" />
+      <rect x="15" y="3" width="4" height="18" rx="0.5" fill="currentColor" stroke="none" />
+      <rect x="21" y="3" width="0" height="18" rx="0.5" />
+    </svg>
+  );
+}
+
 function CompareIcon({ active }: { active: boolean }) {
   return (
     <svg className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -173,6 +191,7 @@ const VIEW_ICONS: Record<ViewType, (active: boolean) => React.ReactNode> = {
   compare: (a) => <CompareIcon active={a} />,
   agenda: (a) => <AgendaIcon active={a} />,
   day: (a) => <DayIcon active={a} />,
+  schedule: (a) => <ScheduleIcon active={a} />,
 };
 
 export default function CalendarView({
@@ -507,6 +526,9 @@ export default function CalendarView({
         )}
         {view === 'day' && (
           <SlotDayView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} hourHeight={hourHeight} />
+        )}
+        {view === 'schedule' && (
+          <ScheduleView date={date} events={filteredEvents} sources={sources} people={people} t={t} locale={locale} timezone={timezone} hourHeight={hourHeight} onEventClick={setSelectedEvent} singlePersonId={selectedPerson ?? undefined} />
         )}
       </main>
 

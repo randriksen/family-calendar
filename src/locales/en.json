@@ -18,7 +18,8 @@
     "rolling": "Rolling",
     "compare": "Compare",
     "agenda": "Agenda",
-    "day": "Day"
+    "day": "Day",
+    "schedule": "Schedule"
   },
   "calendar": {
     "weekNumber": "Wk",
@@ -94,6 +95,8 @@
       "url": "URL",
       "file": "File",
       "sourceColor": "Event Color",
+      "editColor": "Color",
+      "usePersonColor": "Use person color",
       "lastFetched": "Last synced",
       "never": "Never",
       "refresh": "Sync now",

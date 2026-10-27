@@ -299,7 +299,7 @@ export function updateSource(id: string, updates: Partial<{
   name: string;
   url: string;
   file_path: string;
-  color: string;
+  color: string | null;
   last_fetched_at: string;
   person_ids: string[];
   sync_interval_minutes: number;

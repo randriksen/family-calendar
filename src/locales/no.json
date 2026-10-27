@@ -18,7 +18,8 @@
     "rolling": "Rullende",
     "compare": "Sammenlign",
     "agenda": "Agenda",
-    "day": "Dag"
+    "day": "Dag",
+    "schedule": "Timeplan"
   },
   "calendar": {
     "weekNumber": "Uke",
@@ -94,6 +95,8 @@
       "url": "URL",
       "file": "Fil",
       "sourceColor": "Hendelsefarge",
+      "editColor": "Farge",
+      "usePersonColor": "Bruk personfarge",
       "lastFetched": "Sist synkronisert",
       "never": "Aldri",
       "refresh": "Synkroniser nå",

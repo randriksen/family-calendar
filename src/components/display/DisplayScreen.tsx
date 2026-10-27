@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import type { CalendarEvent, CalendarSource, Person, LocaleData, ViewType, Display } from '@/types';
 import MonthView from '@/components/calendar/MonthView';
@@ -8,6 +8,7 @@ import WeekView from '@/components/calendar/WeekView';
 import RollingView from '@/components/calendar/RollingView';
 import AgendaView from '@/components/calendar/AgendaView';
 import SlotDayView from '@/components/calendar/SlotDayView';
+import ScheduleView from '@/components/calendar/ScheduleView';
 
 interface DisplayScreenProps {
   displayId: string;
@@ -27,8 +28,9 @@ function getEventRange(view: ViewType, date: Date, rollingDays: number): { start
   switch (view) {
     case 'month':  return { start: startOfMonth(date), end: endOfMonth(date) };
     case 'week':   return { start: startOfWeek(date, { weekStartsOn: 1 }), end: endOfWeek(date, { weekStartsOn: 1 }) };
-    case 'day':    return { start: addDays(date, -1), end: addDays(date, 1) };
-    case 'agenda': return { start: date, end: addDays(date, 90) };
+    case 'day':      return { start: addDays(date, -1), end: addDays(date, 1) };
+    case 'agenda':   return { start: date, end: addDays(date, 90) };
+    case 'schedule': return { start: startOfWeek(date, { weekStartsOn: 1 }), end: endOfWeek(date, { weekStartsOn: 1 }) };
     case 'rolling':
     default:       return { start: addDays(date, -90), end: addDays(date, rollingDays + 90) };
   }
@@ -67,6 +69,14 @@ export default function DisplayScreen({
   const [viewIndex, setViewIndex] = useState(0);
   const [date, setDate] = useState(() => new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [hourHeight, setHourHeight] = useState(96);
+
+  useEffect(() => {
+    const update = () => setHourHeight(window.innerWidth >= 1920 ? 128 : window.innerWidth >= 1536 ? 96 : 80);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   const currentView = (views[viewIndex] ?? 'month') as ViewType;
 
@@ -144,6 +154,9 @@ export default function DisplayScreen({
         )}
         {currentView === 'day' && (
           <SlotDayView date={date} events={events} sources={sources} people={people} t={t} locale={locale} dateFormat={dateFormat} timezone={timezone} />
+        )}
+        {currentView === 'schedule' && (
+          <ScheduleView date={date} events={events} sources={sources} people={people} t={t} locale={locale} timezone={timezone} hourHeight={hourHeight} />
         )}
       </main>
     </div>

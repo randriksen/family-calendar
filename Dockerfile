@@ -7,7 +7,9 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 COPY package*.json ./
-RUN npm install -g npm@latest && npm install
+# Use the npm bundled with the base image. Upgrading to npm@latest here is
+# unpinned and breaks whenever npm requires a newer Node than this base.
+RUN npm install
 
 COPY . .
 
@@ -67,6 +69,6 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget -qO- http://localhost:3000/api/health | grep -q '"status":"ok"' || exit 1
+  CMD wget -qO- http://127.0.0.1:3000/api/health | grep -q '"status":"ok"' || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]

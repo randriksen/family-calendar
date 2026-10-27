@@ -29,7 +29,8 @@ export async function PUT(
     if (body.name !== undefined) updates.name = body.name.trim();
     if (body.url !== undefined) updates.url = body.url;
     if (body.file_path !== undefined) updates.file_path = body.file_path;
-    if (body.color !== undefined) updates.color = body.color;
+    // Empty string clears the override so the source falls back to the person color
+    if (body.color !== undefined) updates.color = body.color || null;
 
     if (Array.isArray(body.person_ids)) {
       for (const pid of body.person_ids) {

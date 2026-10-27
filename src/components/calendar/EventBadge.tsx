@@ -56,18 +56,25 @@ function hashToHex(str: string): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
-export function getEventColor(
-  event: CalendarEvent,
-  sources: CalendarSource[],
-  people: Person[]
-): string {
-  const source = sources.find(s => s.id === event.source_id);
+// The colour a source imposes on its events, independent of any person.
+// Returns null when the source defers to the person's colour.
+export function getSourceColor(source: CalendarSource | undefined): string | null {
   if (source?.color) return source.color;
   // Shared source (multiple people) with no explicit color → deterministic source color
   // so the same event looks identical in every person's column
   if (source && source.person_ids && source.person_ids.length > 1) {
     return hashToHex(source.id);
   }
+  return null;
+}
+
+export function getEventColor(
+  event: CalendarEvent,
+  sources: CalendarSource[],
+  people: Person[]
+): string {
+  const sourceColor = getSourceColor(sources.find(s => s.id === event.source_id));
+  if (sourceColor) return sourceColor;
   const person = people.find(p => p.id === event.person_id);
   return person?.color || '#6b7280';
 }

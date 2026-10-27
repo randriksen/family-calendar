@@ -1,0 +1,101 @@
+<h2>The Wall Display Screen</h2>
+<p class="subtitle">Full-screen, no nav. What should it look like? Pick the chrome/header style you prefer.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="minimal-bar" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:0;border-radius:6px;overflow:hidden;">
+      <!-- Thin top bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#1e293b;border-bottom:1px solid #334155;">
+        <span style="font-size:10px;font-weight:700;color:#f1f5f9;font-family:sans-serif;">Family Calendar</span>
+        <span style="font-size:14px;font-weight:700;color:#f1f5f9;font-family:sans-serif;">14:32</span>
+        <span style="font-size:9px;color:#64748b;font-family:sans-serif;">Sunday 15 June</span>
+      </div>
+      <!-- Calendar content area -->
+      <div style="padding:8px;font-family:sans-serif;">
+        <div style="color:#94a3b8;font-size:9px;font-weight:700;text-align:center;margin-bottom:6px;letter-spacing:1px;">JUNE 2026</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:8px;color:#64748b;text-align:center;margin-bottom:3px;">
+          <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div style="color:#ef4444;">Sa</div><div style="color:#ef4444;">Su</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:9px;text-align:center;">
+          <div style="color:#475569;">26</div><div style="color:#475569;">27</div><div style="color:#475569;">28</div><div style="color:#475569;">29</div><div style="color:#475569;">30</div><div style="color:#475569;">31</div><div style="color:#94a3b8;padding:3px;">1</div>
+          <div style="color:#94a3b8;padding:3px;">2</div><div style="color:#94a3b8;padding:3px;">3</div><div style="color:#94a3b8;padding:3px;">4</div><div style="color:#94a3b8;padding:3px;">5</div><div style="color:#94a3b8;padding:3px;">6</div><div style="color:#94a3b8;padding:3px;">7</div><div style="color:#94a3b8;padding:3px;">8</div>
+          <div style="color:#94a3b8;padding:3px;">9</div><div style="color:#94a3b8;padding:3px;">10</div><div style="color:#94a3b8;padding:3px;">11</div><div style="color:#94a3b8;padding:3px;">12</div><div style="color:#94a3b8;padding:3px;">13</div><div style="color:#94a3b8;padding:3px;">14</div><div style="background:#3b82f6;color:white;border-radius:3px;padding:3px;">15</div>
+          <div style="color:#94a3b8;padding:3px;">16</div><div style="color:#94a3b8;padding:3px;">17</div><div style="color:#94a3b8;padding:3px;">18</div><div style="color:#94a3b8;padding:3px;">19</div><div style="color:#94a3b8;padding:3px;">20</div><div style="color:#94a3b8;padding:3px;">21</div><div style="color:#94a3b8;padding:3px;">22</div>
+        </div>
+        <div style="margin-top:6px;display:flex;flex-direction:column;gap:2px;">
+          <div style="background:#3b82f6;color:white;border-radius:2px;padding:1px 5px;font-size:7px;">Emma: Piano 14:00</div>
+          <div style="background:#10b981;color:white;border-radius:2px;padding:1px 5px;font-size:7px;">Lars: Football coaching 18:00</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Slim top bar</h3>
+      <p>App name + clock + date in a thin dark bar. Calendar fills the rest. Minimal chrome.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="clock-sidebar" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:0;border-radius:6px;overflow:hidden;display:flex;min-height:140px;">
+      <!-- Left sidebar with clock -->
+      <div style="width:52px;background:#1e293b;border-right:1px solid #334155;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;gap:4px;flex-shrink:0;">
+        <div style="font-size:16px;font-weight:800;color:#f1f5f9;font-family:sans-serif;line-height:1;">14:32</div>
+        <div style="font-size:7px;color:#64748b;font-family:sans-serif;text-align:center;line-height:1.3;">Sun<br/>15 Jun</div>
+        <div style="width:28px;height:1px;background:#334155;margin:4px 0;"></div>
+        <div style="font-size:6px;color:#475569;font-family:sans-serif;text-align:center;">Living<br/>Room</div>
+      </div>
+      <!-- Calendar -->
+      <div style="flex:1;padding:8px;font-family:sans-serif;">
+        <div style="color:#94a3b8;font-size:9px;font-weight:700;text-align:center;margin-bottom:4px;letter-spacing:1px;">JUNE 2026</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:7px;color:#64748b;text-align:center;margin-bottom:2px;">
+          <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div style="color:#ef4444;">Sa</div><div style="color:#ef4444;">Su</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:8px;text-align:center;">
+          <div style="color:#94a3b8;padding:2px;">1</div><div style="color:#94a3b8;padding:2px;">2</div><div style="color:#94a3b8;padding:2px;">3</div><div style="color:#94a3b8;padding:2px;">4</div><div style="color:#94a3b8;padding:2px;">5</div><div style="color:#94a3b8;padding:2px;">6</div><div style="color:#94a3b8;padding:2px;">7</div>
+          <div style="color:#94a3b8;padding:2px;">8</div><div style="color:#94a3b8;padding:2px;">9</div><div style="color:#94a3b8;padding:2px;">10</div><div style="color:#94a3b8;padding:2px;">11</div><div style="color:#94a3b8;padding:2px;">12</div><div style="color:#94a3b8;padding:2px;">13</div><div style="color:#94a3b8;padding:2px;">14</div>
+          <div style="color:#94a3b8;padding:2px;">15</div><div style="background:#3b82f6;color:white;border-radius:3px;padding:2px;">16</div><div style="color:#94a3b8;padding:2px;">17</div><div style="color:#94a3b8;padding:2px;">18</div><div style="color:#94a3b8;padding:2px;">19</div><div style="color:#94a3b8;padding:2px;">20</div><div style="color:#94a3b8;padding:2px;">21</div>
+        </div>
+        <div style="margin-top:4px;display:flex;flex-direction:column;gap:1px;">
+          <div style="background:#3b82f6;color:white;border-radius:2px;padding:1px 4px;font-size:6px;">Emma: Piano 14:00</div>
+          <div style="background:#10b981;color:white;border-radius:2px;padding:1px 4px;font-size:6px;">Lars: Football 18:00</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Clock sidebar</h3>
+      <p>Narrow left sidebar with big clock, date, screen name. Calendar fills the right. Good for tall screens.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="no-chrome" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a;padding:8px;border-radius:6px;overflow:hidden;font-family:sans-serif;">
+      <!-- No chrome at all — just a tiny clock overlay -->
+      <div style="position:relative;">
+        <div style="color:#94a3b8;font-size:9px;font-weight:700;text-align:center;margin-bottom:4px;letter-spacing:1px;">JUNE 2026</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:8px;color:#64748b;text-align:center;margin-bottom:2px;">
+          <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div style="color:#ef4444;">Sa</div><div style="color:#ef4444;">Su</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:9px;text-align:center;color:#94a3b8;">
+          <div style="padding:2px;">1</div><div style="padding:2px;">2</div><div style="padding:2px;">3</div><div style="padding:2px;">4</div><div style="padding:2px;">5</div><div style="padding:2px;">6</div><div style="padding:2px;">7</div>
+          <div style="padding:2px;">8</div><div style="padding:2px;">9</div><div style="padding:2px;">10</div><div style="padding:2px;">11</div><div style="padding:2px;">12</div><div style="padding:2px;">13</div><div style="padding:2px;">14</div>
+          <div style="background:#3b82f6;color:white;border-radius:3px;padding:2px;">15</div><div style="padding:2px;">16</div><div style="padding:2px;">17</div><div style="padding:2px;">18</div><div style="padding:2px;">19</div><div style="padding:2px;">20</div><div style="padding:2px;">21</div>
+        </div>
+        <div style="margin-top:4px;display:flex;flex-direction:column;gap:1px;">
+          <div style="background:#3b82f6;color:white;border-radius:2px;padding:1px 4px;font-size:6px;">Emma: Piano 14:00</div>
+          <div style="background:#10b981;color:white;border-radius:2px;padding:1px 4px;font-size:6px;">Lars: Football 18:00</div>
+        </div>
+        <!-- Tiny overlay clock bottom-right -->
+        <div style="position:absolute;bottom:0;right:0;background:rgba(30,41,59,0.85);border-radius:4px;padding:3px 6px;">
+          <span style="font-size:11px;font-weight:700;color:#f1f5f9;">14:32</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Calendar fills screen</h3>
+      <p>Calendar takes all available space. Clock/date as a small overlay in a corner. Maximum calendar real estate.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="text-align:center;margin-top:8px;">All options use a dark background for better readability on wall-mounted screens at a distance. The display always auto-refreshes.</p>

@@ -1,0 +1,153 @@
+<h2>Passive Display Layout Options</h2>
+<p class="subtitle">What should the wall display show? Pick the layout that fits best (or mix ideas).</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="month-full" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:12px;font-family:sans-serif;">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:9px;">
+        <div style="text-align:center;color:#64748b;font-weight:600;">Mo</div><div style="text-align:center;color:#64748b;font-weight:600;">Tu</div><div style="text-align:center;color:#64748b;font-weight:600;">We</div><div style="text-align:center;color:#64748b;font-weight:600;">Th</div><div style="text-align:center;color:#64748b;font-weight:600;">Fr</div><div style="text-align:center;color:#ef4444;font-weight:600;">Sa</div><div style="text-align:center;color:#ef4444;font-weight:600;">Su</div>
+        <div style="text-align:center;padding:2px;color:#94a3b8;font-size:8px;">29</div><div style="text-align:center;padding:2px;color:#94a3b8;font-size:8px;">30</div><div style="text-align:center;padding:2px;color:#94a3b8;font-size:8px;">31</div>
+        <div style="text-align:center;padding:2px;">1</div>
+        <div style="text-align:center;padding:2px;">2</div>
+        <div style="text-align:center;padding:2px;color:#ef4444;">3</div>
+        <div style="text-align:center;padding:2px;color:#ef4444;">4</div>
+        <div style="text-align:center;padding:2px;">5</div><div style="text-align:center;padding:2px;">6</div><div style="text-align:center;padding:2px;">7</div><div style="text-align:center;padding:2px;">8</div>
+        <div style="text-align:center;padding:2px;background:#3b82f6;color:white;border-radius:2px;">9</div>
+        <div style="text-align:center;padding:2px;color:#ef4444;">10</div>
+        <div style="text-align:center;padding:2px;color:#ef4444;">11</div>
+        <div style="text-align:center;padding:2px;">12</div><div style="text-align:center;padding:2px;">13</div><div style="text-align:center;padding:2px;">14</div><div style="text-align:center;padding:2px;">15</div><div style="text-align:center;padding:2px;">16</div><div style="text-align:center;padding:2px;color:#ef4444;">17</div><div style="text-align:center;padding:2px;color:#ef4444;">18</div>
+        <div style="text-align:center;padding:2px;">19</div><div style="text-align:center;padding:2px;">20</div><div style="text-align:center;padding:2px;">21</div><div style="text-align:center;padding:2px;">22</div><div style="text-align:center;padding:2px;">23</div><div style="text-align:center;padding:2px;color:#ef4444;">24</div><div style="text-align:center;padding:2px;color:#ef4444;">25</div>
+        <div style="text-align:center;padding:2px;">26</div><div style="text-align:center;padding:2px;">27</div><div style="text-align:center;padding:2px;">28</div><div style="text-align:center;padding:2px;">29</div><div style="text-align:center;padding:2px;">30</div><div style="text-align:center;padding:2px;color:#ef4444;">31</div>
+      </div>
+      <div style="margin-top:6px;display:flex;flex-direction:column;gap:2px;">
+        <div style="background:#3b82f6;color:white;border-radius:2px;padding:1px 4px;font-size:7px;">Emma: Piano lesson 14:00</div>
+        <div style="background:#10b981;color:white;border-radius:2px;padding:1px 4px;font-size:7px;">Lars: Standup 08:30</div>
+        <div style="background:#ec4899;color:white;border-radius:2px;padding:1px 4px;font-size:7px;">Sophie: Gymnastics 17:00</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Full Month</h3>
+      <p>Classic wall calendar. The whole month at a glance, events shown inside each day cell.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="week-plus-agenda" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:12px;font-family:sans-serif;display:flex;gap:8px;">
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:4px;padding:6px;">
+        <div style="font-size:8px;font-weight:700;color:#334155;margin-bottom:4px;">THIS WEEK</div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <div style="display:flex;gap:4px;align-items:center;">
+            <div style="width:22px;text-align:center;font-size:7px;color:#64748b;font-weight:600;">Mo</div>
+            <div style="flex:1;font-size:7px;">
+              <div style="background:#3b82f6;color:white;border-radius:2px;padding:1px 3px;margin-bottom:1px;">School (all day)</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <div style="width:22px;text-align:center;font-size:7px;color:#64748b;font-weight:600;">Tu</div>
+            <div style="flex:1;font-size:7px;">
+              <div style="background:#10b981;color:white;border-radius:2px;padding:1px 3px;margin-bottom:1px;">Football 18:00</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <div style="width:22px;text-align:center;font-size:7px;color:#1d4ed8;font-weight:700;">We ← TODAY</div>
+            <div style="flex:1;font-size:7px;">
+              <div style="background:#ec4899;color:white;border-radius:2px;padding:1px 3px;margin-bottom:1px;">Piano 14:00</div>
+              <div style="background:#f97316;color:white;border-radius:2px;padding:1px 3px;">Gymnastics 17:00</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <div style="width:22px;text-align:center;font-size:7px;color:#64748b;font-weight:600;">Th</div>
+            <div style="flex:1;font-size:7px;color:#94a3b8;">—</div>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <div style="width:22px;text-align:center;font-size:7px;color:#64748b;font-weight:600;">Fr</div>
+            <div style="flex:1;font-size:7px;">
+              <div style="background:#3b82f6;color:white;border-radius:2px;padding:1px 3px;">Parent meeting</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="width:80px;border:1px solid #e2e8f0;border-radius:4px;padding:6px;">
+        <div style="font-size:8px;font-weight:700;color:#334155;margin-bottom:4px;">COMING UP</div>
+        <div style="display:flex;flex-direction:column;gap:3px;font-size:7px;">
+          <div><div style="color:#64748b;">Jun 16</div><div style="color:#3b82f6;">Emma: Yoga</div></div>
+          <div><div style="color:#64748b;">Jun 18</div><div style="color:#10b981;">Lars: Conf.</div></div>
+          <div><div style="color:#64748b;">Jun 20</div><div style="color:#ec4899;">Sophie: Swim</div></div>
+          <div><div style="color:#64748b;">Jun 22</div><div style="color:#f97316;">Lucas: B-day</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Week + Upcoming</h3>
+      <p>Current week in detail on the left, next 2–4 weeks as a scrolling agenda on the right.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="today-focus" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:12px;font-family:sans-serif;display:flex;gap:8px;">
+      <div style="flex:2;border:1px solid #e2e8f0;border-radius:4px;padding:6px;">
+        <div style="font-size:8px;font-weight:700;color:#1d4ed8;margin-bottom:4px;">TODAY — WEDNESDAY 15</div>
+        <div style="display:flex;gap:4px;font-size:7px;margin-bottom:3px;">
+          <div style="width:28px;color:#64748b;text-align:right;">08:00</div>
+          <div style="flex:1;display:flex;gap:2px;">
+            <div style="flex:1;background:#10b981;color:white;border-radius:2px;padding:1px 3px;">Lars: Standup</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;font-size:7px;margin-bottom:3px;">
+          <div style="width:28px;color:#64748b;text-align:right;">14:00</div>
+          <div style="flex:1;display:flex;gap:2px;">
+            <div style="flex:1;background:#ec4899;color:white;border-radius:2px;padding:1px 3px;">Sophie: Piano</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;font-size:7px;margin-bottom:3px;">
+          <div style="width:28px;color:#64748b;text-align:right;">17:00</div>
+          <div style="flex:1;display:flex;gap:2px;">
+            <div style="flex:1;background:#f97316;color:white;border-radius:2px;padding:1px 3px;">Lucas: Football</div>
+            <div style="flex:1;background:#3b82f6;color:white;border-radius:2px;padding:1px 3px;">Emma: Yoga</div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;border:1px solid #e2e8f0;border-radius:4px;padding:6px;">
+        <div style="font-size:8px;font-weight:700;color:#334155;margin-bottom:4px;">WEEK</div>
+        <div style="display:flex;flex-direction:column;gap:2px;font-size:7px;">
+          <div style="display:flex;gap:3px;"><span style="width:16px;color:#64748b;">Mo</span><span style="color:#3b82f6;">School</span></div>
+          <div style="display:flex;gap:3px;"><span style="width:16px;color:#64748b;">Tu</span><span style="color:#10b981;">Football</span></div>
+          <div style="display:flex;gap:3px;"><span style="width:16px;font-weight:700;color:#1d4ed8;">We</span><span style="font-weight:600;">← Today</span></div>
+          <div style="display:flex;gap:3px;"><span style="width:16px;color:#64748b;">Th</span><span style="color:#94a3b8;">—</span></div>
+          <div style="display:flex;gap:3px;"><span style="width:16px;color:#64748b;">Fr</span><span style="color:#ec4899;">Meeting</span></div>
+          <div style="display:flex;gap:3px;"><span style="width:16px;color:#ef4444;">Sa</span><span style="color:#f97316;">Party</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Today Focus + Week Mini</h3>
+      <p>Big time-grid for today on the left, compact week overview on the right. Best for knowing what's happening right now.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="configurable-panels" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:12px;font-family:sans-serif;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:4px;">
+        <div style="border:2px dashed #3b82f6;border-radius:4px;padding:6px;text-align:center;font-size:8px;color:#3b82f6;font-weight:600;">
+          Panel 1<br/><span style="font-weight:400;color:#64748b;">e.g. Month view</span>
+        </div>
+        <div style="border:2px dashed #10b981;border-radius:4px;padding:6px;text-align:center;font-size:8px;color:#10b981;font-weight:600;">
+          Panel 2<br/><span style="font-weight:400;color:#64748b;">e.g. Today's schedule</span>
+        </div>
+        <div style="border:2px dashed #ec4899;border-radius:4px;padding:6px;text-align:center;font-size:8px;color:#ec4899;font-weight:600;">
+          Panel 3<br/><span style="font-weight:400;color:#64748b;">e.g. Agenda</span>
+        </div>
+        <div style="border:2px dashed #f97316;border-radius:4px;padding:6px;text-align:center;font-size:8px;color:#f97316;font-weight:600;">
+          Panel 4<br/><span style="font-weight:400;color:#64748b;">e.g. Weather / Clock</span>
+        </div>
+      </div>
+      <div style="margin-top:6px;text-align:center;font-size:7px;color:#64748b;">Configurable in Settings → Display</div>
+    </div>
+    <div class="card-body">
+      <h3>D — Configurable Panels</h3>
+      <p>Choose 1–4 panels from a list (month, week, today, agenda). Each panel shows one view. Maximum flexibility.</p>
+    </div>
+  </div>
+
+</div>
