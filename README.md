@@ -186,6 +186,25 @@ All settings are configurable from the **Settings → Display** tab:
 | `display_timezone` | `Europe/Oslo` | Timezone for rendering events |
 | `date_format` | `dd/MM/yyyy` | Date format string |
 
+## Lite Mode
+
+`/lite` is a deliberately plain version of the calendar for old or weak devices — an Android 4.4 tablet on the wall, for example. It shows one month, week or day at a time and sends **no client-side JavaScript at all**: every page is static HTML, navigation is ordinary links, and the page reloads itself with `<meta http-equiv="refresh">` to pick up new events. The stylesheet avoids CSS Grid, custom properties and `position: sticky`, so it renders on a stock KitKat WebView as well as on modern browsers.
+
+```
+http://<host>:3000/lite
+http://<host>:3000/lite?view=week&date=2026-10-29
+http://<host>:3000/lite?view=day&person=<person-id>&refresh=120
+```
+
+| Parameter | Values | Default |
+|---|---|---|
+| `view` | `month`, `week`, `day` | the app's default view |
+| `date` | `YYYY-MM-DD` | today in the display timezone |
+| `person` | a person id | all people |
+| `refresh` | seconds between reloads (30–3600), `0` to disable | `300` |
+
+Month cells show up to four events and link to the day view for the rest, which keeps the DOM small on slow hardware.
+
 ## Technology Stack
 
 | Layer | Technology |
