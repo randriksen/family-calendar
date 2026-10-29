@@ -2,6 +2,9 @@
 
 import type { CalendarEvent, CalendarSource, Person } from '@/types';
 import { formatTzTime } from '@/lib/tz';
+// Colour logic lives in @/lib/eventColor so server code can share it.
+import { getEventColor, getTextColor } from '@/lib/eventColor';
+export { getEventColor, getSourceColor, getTextColor } from '@/lib/eventColor';
 
 export type EventPosition = 'single' | 'first' | 'middle' | 'last';
 
@@ -15,10 +18,6 @@ interface EventBadgeProps {
   position?: EventPosition;
   onClick?: (event: CalendarEvent) => void;
 }
-
-// Colour logic lives in @/lib/eventColor so server code can share it.
-import { getEventColor, getTextColor } from '@/lib/eventColor';
-export { getEventColor, getSourceColor, getTextColor } from '@/lib/eventColor';
 
 export default function EventBadge({ event, sources, people, timezone, compact = false, hideLocation = false, position = 'single', onClick }: EventBadgeProps) {
   const color = getEventColor(event, sources, people);

@@ -57,7 +57,8 @@ function Event({ ev, dayKey, m, detailed }: { ev: CalendarEvent; dayKey: string;
   const person = m.people.find(p => p.id === ev.person_id);
   let range: string | null = time;
   if (detailed && time && time !== '→' && ev.end_date) {
-    range = `${time} – ${formatTzTime(ev.end_date, m.timezone)}`;
+    const end = formatTzTime(ev.end_date, m.timezone);
+    if (end !== time) range = `${time} – ${end}`;
   }
   return (
     <div className="ev" style={{ backgroundColor: bg, color: fg }} title={ev.title}>
@@ -108,7 +109,7 @@ function MonthGrid({ m }: { m: LiteModel }) {
   );
 }
 
-function DayList({ m, days }: { m: LiteModel; days: LiteDay[] }) {
+function DayList({ m, days, headings }: { m: LiteModel; days: LiteDay[]; headings: boolean }) {
   return (
     <div>
       {days.map(d => {
@@ -117,12 +118,14 @@ function DayList({ m, days }: { m: LiteModel; days: LiteDay[] }) {
         const [y, mo, da] = d.key.split('-');
         return (
           <div key={d.key} className={d.key === m.todayKey ? 'day today' : 'day'}>
-            <h3>
-              <a href={m.dayHref(d.key)} style={{ color: 'inherit', textDecoration: 'none' }}>
-                {m.dayNamesLong[d.weekday]} {parseInt(da, 10)}.{parseInt(mo, 10)}.
-              </a>
-              <small>{y}</small>
-            </h3>
+            {headings && (
+              <h3>
+                <a href={m.dayHref(d.key)} style={{ color: 'inherit', textDecoration: 'none' }}>
+                  {m.dayNamesLong[d.weekday]} {parseInt(da, 10)}.{parseInt(mo, 10)}.
+                </a>
+                <small>{y}</small>
+              </h3>
+            )}
             {holiday && <span className="hol">{holiday}</span>}
             {evs.length === 0 && <div className="empty">{m.t.calendar.noEvents}</div>}
             {evs.map(ev => <Event key={ev.id} ev={ev} dayKey={d.key} m={m} detailed={true} />)}
@@ -167,7 +170,7 @@ export default function LitePage({ m }: { m: LiteModel }) {
           </div>
         </div>
         <div className="title">{m.title}</div>
-        {m.view === 'month' ? <MonthGrid m={m} /> : <DayList m={m} days={m.days} />}
+        {m.view === 'month' ? <MonthGrid m={m} /> : <DayList m={m} days={m.days} headings={m.view === 'week'} />}
       </body>
     </html>
   );

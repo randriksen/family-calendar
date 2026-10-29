@@ -205,6 +205,13 @@ http://<host>:3000/lite?view=day&person=<person-id>&refresh=120
 
 Month cells show up to four events and link to the day view for the rest, which keeps the DOM small on slow hardware.
 
+### Running it on a Philips signage tablet
+
+On a Philips/TPV Android signage display (tested on a 10BDL3051T, Android 4.4, 1 GB RAM) use the built-in **Browser** source rather than Firefox or Chrome. It launches Chromium's bare content shell, which showed `/lite` at ~45–60 MB total versus ~100 MB for an idle Firefox, and it is the only option the display can start by itself after a power cut:
+
+1. Browser source → **Settings** → put `http://<host>:3000/lite` in URL slot 1 → OK.
+2. Admin menu → Settings → Signage Display → Source settings → **Boot on source** → Input: Browser, Playlist: 1.
+
 ## Technology Stack
 
 | Layer | Technology |
