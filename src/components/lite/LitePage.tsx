@@ -43,12 +43,14 @@ td.today{background:#fef3c7}
 .empty{color:#9ca3af;font-style:italic;padding:2px 4px;font-size:13px}
 .sh{padding:6px 8px;background:#f3f4f6;border-top:1px solid #d1d5db;font-size:15px;font-weight:bold}
 .sh a{color:inherit;text-decoration:none}
-.sh .empty{font-weight:normal;margin-left:6px}
+.sh .empty,.sh .hol{font-weight:normal;margin-left:6px;display:inline}
 .sd.today .sh{background:#dbeafe}
 table.s{width:100%;border-collapse:collapse;table-layout:fixed}
 table.s th{font-size:13px;padding:4px 6px;border:1px solid #d1d5db;border-top-width:3px;background:#f9fafb;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 table.s th.tc,table.s td.tc{width:44px}
 table.s td{padding:0;border:1px solid #d1d5db;vertical-align:top}
+table.s td.ad{padding:2px;background:#f9fafb}
+table.s td.ad .ev{white-space:normal}
 .col{position:relative;overflow:hidden}
 .grid{background-image:linear-gradient(to bottom,#e5e7eb 0,#e5e7eb 1px,transparent 1px,transparent 100%);background-repeat:repeat-y}
 .hl{position:absolute;right:4px;font-size:10px;color:#9ca3af}
@@ -153,15 +155,21 @@ function DayList({ m, days, headings }: { m: LiteModel; days: LiteDay[]; heading
 // Seven stacked day sections, each a time grid with a column per person.
 // Blocks are absolutely positioned inside a fixed-height cell; hour lines are
 // a repeating background so they cost no extra elements.
-function ScheduleGrid({ m, s }: { m: LiteModel; s: LiteSchedule }) {
+function ScheduleGrid({ m, s, headings }: { m: LiteModel; s: LiteSchedule; headings: boolean }) {
   return (
     <div>
-      {s.days.map(d => (
+      {s.days.map(d => {
+        const holiday = getHoliday(m.locale, d.key);
+        const hasAllDay = d.allDay.some(list => list.length > 0);
+        return (
         <div key={d.key} className={d.key === m.todayKey ? 'sd today' : 'sd'}>
-          <div className="sh">
-            <a href={m.dayHref(d.key)}>{d.dayName} {d.dayOfMonth}.</a>
-            {!d.hasEvents && <span className="empty">{m.t.calendar.noEvents}</span>}
-          </div>
+          {(headings || holiday || !d.hasEvents) && (
+            <div className="sh">
+              {headings && <a href={m.dayHref(d.key)}>{d.dayName} {d.dayOfMonth}.</a>}
+              {holiday && <span className="hol">{holiday}</span>}
+              {!d.hasEvents && <span className="empty">{m.t.calendar.noEvents}</span>}
+            </div>
+          )}
           <table className="s">
             <thead>
               <tr>
@@ -170,6 +178,16 @@ function ScheduleGrid({ m, s }: { m: LiteModel; s: LiteSchedule }) {
               </tr>
             </thead>
             <tbody>
+              {hasAllDay && (
+                <tr>
+                  <td className="tc ad" />
+                  {s.people.map((p, i) => (
+                    <td key={p.id} className="ad">
+                      {d.allDay[i].map(ev => <Event key={ev.id} ev={ev} dayKey={d.key} m={m} detailed={false} />)}
+                    </td>
+                  ))}
+                </tr>
+              )}
               <tr>
                 <td className="tc">
                   <div className="col" style={{ height: `${s.totalH}px` }}>
@@ -202,7 +220,8 @@ function ScheduleGrid({ m, s }: { m: LiteModel; s: LiteSchedule }) {
             </tbody>
           </table>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -242,7 +261,7 @@ export default function LitePage({ m }: { m: LiteModel }) {
         </div>
         <div className="title">{m.title}</div>
         {m.view === 'month' && <MonthGrid m={m} />}
-        {m.schedule && <ScheduleGrid m={m} s={m.schedule} />}
+        {m.schedule && <ScheduleGrid m={m} s={m.schedule} headings={m.view === 'schedule'} />}
         {(m.view === 'week' || m.view === 'day') && <DayList m={m} days={m.days} headings={m.view === 'week'} />}
       </body>
     </html>

@@ -19,7 +19,8 @@
     "compare": "Sammenlign",
     "agenda": "Agenda",
     "day": "Dag",
-    "schedule": "Timeplan"
+    "schedule": "Timeplan",
+    "dayplan": "Dagsplan"
   },
   "calendar": {
     "weekNumber": "Uke",

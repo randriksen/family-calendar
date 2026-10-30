@@ -11,8 +11,8 @@ import { assignLanes, buildDayData, fmtMin } from '@/lib/schedule';
 // weak or old devices. Everything here is pure data preparation; LitePage
 // turns the model into markup and the route handler loads the inputs.
 
-export type LiteView = 'month' | 'week' | 'day' | 'schedule';
-export const LITE_VIEWS: LiteView[] = ['month', 'week', 'day', 'schedule'];
+export type LiteView = 'month' | 'week' | 'day' | 'schedule' | 'dayplan';
+export const LITE_VIEWS: LiteView[] = ['month', 'week', 'day', 'schedule', 'dayplan'];
 
 export interface LiteDay {
   key: string;        // YYYY-MM-DD in the display timezone
@@ -34,8 +34,9 @@ export interface LiteLink {
 }
 
 // Schedule (timeplan) view: seven days from the chosen date, each a time grid
-// with one column per person. Geometry is computed here so the page only has
-// to place absolutely positioned blocks.
+// with one column per person. The day plan is the same grid for a single day,
+// with that day's all-day events above it. Geometry is computed here so the
+// page only has to place absolutely positioned blocks.
 export interface LiteScheduleBlock {
   ev: CalendarEvent;
   top: number;
@@ -52,6 +53,7 @@ export interface LiteScheduleDay {
   dayOfMonth: number;
   hasEvents: boolean;
   columns: LiteScheduleBlock[][];   // one per person, same order as people
+  allDay: CalendarEvent[][];        // one per person; only filled for the day plan
 }
 
 export interface LiteSchedule {
@@ -144,6 +146,7 @@ export function liteDateSpan(view: LiteView, dateKey: string): { start: Date; en
     case 'week':
       return { start: startOfWeek(d, { weekStartsOn: 1 }), end: endOfWeek(d, { weekStartsOn: 1 }) };
     case 'day':
+    case 'dayplan':
       return { start: d, end: d };
     case 'schedule':
       return { start: d, end: addDays(d, 6) };
@@ -189,7 +192,10 @@ function shift(view: LiteView, dateKey: string, dir: -1 | 1): string {
 const SCHEDULE_HOUR_HEIGHT = 56;
 const SCHEDULE_MIN_BLOCK = 20;
 
-function buildSchedule(days: LiteDay[], events: CalendarEvent[], people: Person[], dayNames: string[], tz: string): LiteSchedule {
+function buildSchedule(
+  days: LiteDay[], events: CalendarEvent[], people: Person[], dayNames: string[], tz: string,
+  eventsByDay: Record<string, CalendarEvent[]>, withAllDay: boolean,
+): LiteSchedule {
   const dayData = days.map(d => buildDayData(d.key, events, people, tz));
   const spans = dayData.flatMap(dd => Array.from(dd.spansByPerson.values()).flat());
 
@@ -217,6 +223,7 @@ function buildSchedule(days: LiteDay[], events: CalendarEvent[], people: Person[
         dayName: dayNames[d.weekday],
         dayOfMonth: d.dayOfMonth,
         hasEvents: dd.hasEvents,
+        allDay: people.map(p => withAllDay ? (eventsByDay[d.key] || []).filter(ev => ev.all_day && ev.person_id === p.id) : []),
         columns: people.map(p => assignLanes(dd.spansByPerson.get(p.id) ?? []).map(item => {
           const top = (item.startMin - axisStart) * pxPerMin;
           const height = Math.max(SCHEDULE_MIN_BLOCK, (item.endMin - item.startMin) * pxPerMin);
@@ -283,12 +290,14 @@ export function buildLiteModel(input: {
   }
 
   const schedulePeople = personId ? people.filter(p => p.id === personId) : people;
-  const schedule = view === 'schedule' ? buildSchedule(days, events, schedulePeople, dayNamesShort, timezone) : null;
+  const schedule = view === 'schedule' || view === 'dayplan'
+    ? buildSchedule(days, events, schedulePeople, dayNamesShort, timezone, eventsByDay, view === 'dayplan')
+    : null;
 
   const link = (over: Partial<LiteParams>) => liteHref({ view, dateKey, personId, refreshSeconds, ...over });
 
   const viewLabels: Record<LiteView, string> = {
-    month: t.views.month, week: t.views.week, day: t.views.day, schedule: t.views.schedule,
+    month: t.views.month, week: t.views.week, day: t.views.day, schedule: t.views.schedule, dayplan: t.views.dayplan,
   };
 
   return {
