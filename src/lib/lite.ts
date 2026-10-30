@@ -5,13 +5,14 @@ import {
 import type { CalendarEvent, CalendarSource, LocaleData, Person } from '@/types';
 import { getEventDateRangeKeys, toTzDateStr } from '@/lib/tz';
 import { getDayNames, getLocaleData, getMonthName } from '@/lib/i18n';
+import { assignLanes, buildDayData, fmtMin } from '@/lib/schedule';
 
 // Lite mode: one month, week or day at a time, rendered as plain HTML for
 // weak or old devices. Everything here is pure data preparation; LitePage
 // turns the model into markup and the route handler loads the inputs.
 
-export type LiteView = 'month' | 'week' | 'day';
-export const LITE_VIEWS: LiteView[] = ['month', 'week', 'day'];
+export type LiteView = 'month' | 'week' | 'day' | 'schedule';
+export const LITE_VIEWS: LiteView[] = ['month', 'week', 'day', 'schedule'];
 
 export interface LiteDay {
   key: string;        // YYYY-MM-DD in the display timezone
@@ -32,8 +33,38 @@ export interface LiteLink {
   color?: string;
 }
 
+// Schedule (timeplan) view: seven days from the chosen date, each a time grid
+// with one column per person. Geometry is computed here so the page only has
+// to place absolutely positioned blocks.
+export interface LiteScheduleBlock {
+  ev: CalendarEvent;
+  top: number;
+  height: number;
+  leftPct: number;
+  widthPct: number;
+  time: string;
+  compact: boolean;   // too short to show more than the title
+}
+
+export interface LiteScheduleDay {
+  key: string;
+  dayName: string;
+  dayOfMonth: number;
+  hasEvents: boolean;
+  columns: LiteScheduleBlock[][];   // one per person, same order as people
+}
+
+export interface LiteSchedule {
+  people: Person[];
+  days: LiteScheduleDay[];
+  hourHeight: number;
+  totalH: number;
+  hours: { label: string; y: number }[];
+}
+
 export interface LiteModel {
   view: LiteView;
+  schedule: LiteSchedule | null;
   dateKey: string;
   todayKey: string;
   title: string;
@@ -114,6 +145,8 @@ export function liteDateSpan(view: LiteView, dateKey: string): { start: Date; en
       return { start: startOfWeek(d, { weekStartsOn: 1 }), end: endOfWeek(d, { weekStartsOn: 1 }) };
     case 'day':
       return { start: d, end: d };
+    case 'schedule':
+      return { start: d, end: addDays(d, 6) };
   }
 }
 
@@ -148,8 +181,58 @@ function bucketEvents(events: CalendarEvent[], dayKeys: Set<string>, tz: string)
 
 function shift(view: LiteView, dateKey: string, dir: -1 | 1): string {
   const d = parseISO(dateKey);
+  // Day and schedule both step one day, like the main app.
   const moved = view === 'month' ? addMonths(d, dir) : view === 'week' ? addWeeks(d, dir) : addDays(d, dir);
   return format(moved, 'yyyy-MM-dd');
+}
+
+const SCHEDULE_HOUR_HEIGHT = 56;
+const SCHEDULE_MIN_BLOCK = 20;
+
+function buildSchedule(days: LiteDay[], events: CalendarEvent[], people: Person[], dayNames: string[], tz: string): LiteSchedule {
+  const dayData = days.map(d => buildDayData(d.key, events, people, tz));
+  const spans = dayData.flatMap(dd => Array.from(dd.spansByPerson.values()).flat());
+
+  // Global time axis across the week, snapped to whole hours so the hour
+  // lines start at the top of the grid.
+  const gMin = spans.length ? Math.min(...spans.map(s => s.startMin)) : 8 * 60;
+  const gMax = spans.length ? Math.max(...spans.map(s => s.endMin)) : 18 * 60;
+  const axisStart = Math.floor(gMin / 60) * 60;
+  const axisEnd = Math.max(axisStart + 60, Math.ceil(gMax / 60) * 60);
+  const pxPerMin = SCHEDULE_HOUR_HEIGHT / 60;
+  const totalH = (axisEnd - axisStart) * pxPerMin;
+
+  const hours: { label: string; y: number }[] = [];
+  for (let h = axisStart; h < axisEnd; h += 60) hours.push({ label: fmtMin(h), y: (h - axisStart) * pxPerMin });
+
+  return {
+    people,
+    hourHeight: SCHEDULE_HOUR_HEIGHT,
+    totalH,
+    hours,
+    days: days.map((d, i) => {
+      const dd = dayData[i];
+      return {
+        key: d.key,
+        dayName: dayNames[d.weekday],
+        dayOfMonth: d.dayOfMonth,
+        hasEvents: dd.hasEvents,
+        columns: people.map(p => assignLanes(dd.spansByPerson.get(p.id) ?? []).map(item => {
+          const top = (item.startMin - axisStart) * pxPerMin;
+          const height = Math.max(SCHEDULE_MIN_BLOCK, (item.endMin - item.startMin) * pxPerMin);
+          return {
+            ev: item.event,
+            top,
+            height,
+            leftPct: (item.lane / item.totalLanes) * 100,
+            widthPct: (1 / item.totalLanes) * 100,
+            time: `${fmtMin(item.startMin)}–${fmtMin(item.endMin)}`,
+            compact: height < 30,
+          };
+        })),
+      };
+    }),
+  };
 }
 
 export function buildLiteModel(input: {
@@ -193,16 +276,23 @@ export function buildLiteModel(input: {
   } else if (view === 'week') {
     const w = getISOWeek(focus);
     title = `${t.calendar.weekNumber} ${w} · ${format(start, 'dd.MM')} – ${format(end, 'dd.MM.yyyy')}`;
+  } else if (view === 'schedule') {
+    title = `${t.views.schedule} · ${format(start, 'dd.MM')} – ${format(end, 'dd.MM.yyyy')}`;
   } else {
     title = `${dayNamesLong[(focus.getDay() + 6) % 7]} ${focus.getDate()}. ${monthName} ${focus.getFullYear()}`;
   }
 
+  const schedulePeople = personId ? people.filter(p => p.id === personId) : people;
+  const schedule = view === 'schedule' ? buildSchedule(days, events, schedulePeople, dayNamesShort, timezone) : null;
+
   const link = (over: Partial<LiteParams>) => liteHref({ view, dateKey, personId, refreshSeconds, ...over });
 
-  const viewLabels: Record<LiteView, string> = { month: t.views.month, week: t.views.week, day: t.views.day };
+  const viewLabels: Record<LiteView, string> = {
+    month: t.views.month, week: t.views.week, day: t.views.day, schedule: t.views.schedule,
+  };
 
   return {
-    view, dateKey, todayKey, title, weeks, days, eventsByDay, people, sources,
+    view, schedule, dateKey, todayKey, title, weeks, days, eventsByDay, people, sources,
     timezone, locale, t, appName, dayNamesShort, dayNamesLong, refreshSeconds,
     maxPerCell: 4,
     nav: {

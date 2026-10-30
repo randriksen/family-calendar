@@ -1,5 +1,5 @@
 import type { CalendarEvent } from '@/types';
-import type { LiteDay, LiteModel } from '@/lib/lite';
+import type { LiteDay, LiteModel, LiteSchedule } from '@/lib/lite';
 import { getEventColor, getTextColor } from '@/lib/eventColor';
 import { formatTzTime, getEventDateRangeKeys } from '@/lib/tz';
 import { getHoliday } from '@/lib/i18n';
@@ -41,6 +41,20 @@ td.today{background:#fef3c7}
 .hol{color:#c2410c;font-size:11px;display:block;padding:0 2px}
 .day .hol{font-size:13px;margin-bottom:4px}
 .empty{color:#9ca3af;font-style:italic;padding:2px 4px;font-size:13px}
+.sh{padding:6px 8px;background:#f3f4f6;border-top:1px solid #d1d5db;font-size:15px;font-weight:bold}
+.sh a{color:inherit;text-decoration:none}
+.sh .empty{font-weight:normal;margin-left:6px}
+.sd.today .sh{background:#dbeafe}
+table.s{width:100%;border-collapse:collapse;table-layout:fixed}
+table.s th{font-size:13px;padding:4px 6px;border:1px solid #d1d5db;border-top-width:3px;background:#f9fafb;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+table.s th.tc,table.s td.tc{width:44px}
+table.s td{padding:0;border:1px solid #d1d5db;vertical-align:top}
+.col{position:relative;overflow:hidden}
+.grid{background-image:linear-gradient(to bottom,#e5e7eb 0,#e5e7eb 1px,transparent 1px,transparent 100%);background-repeat:repeat-y}
+.hl{position:absolute;right:4px;font-size:10px;color:#9ca3af}
+.blk{position:absolute;-webkit-box-sizing:border-box;box-sizing:border-box;padding:2px 4px;border-radius:3px;border:1px solid #fff;overflow:hidden;font-size:11px;line-height:1.25}
+.blk b,.blk .bt{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk .bt{font-size:10px;opacity:.85}
 `;
 
 function timeLabel(ev: CalendarEvent, dayKey: string, tz: string): string | null {
@@ -136,6 +150,63 @@ function DayList({ m, days, headings }: { m: LiteModel; days: LiteDay[]; heading
   );
 }
 
+// Seven stacked day sections, each a time grid with a column per person.
+// Blocks are absolutely positioned inside a fixed-height cell; hour lines are
+// a repeating background so they cost no extra elements.
+function ScheduleGrid({ m, s }: { m: LiteModel; s: LiteSchedule }) {
+  return (
+    <div>
+      {s.days.map(d => (
+        <div key={d.key} className={d.key === m.todayKey ? 'sd today' : 'sd'}>
+          <div className="sh">
+            <a href={m.dayHref(d.key)}>{d.dayName} {d.dayOfMonth}.</a>
+            {!d.hasEvents && <span className="empty">{m.t.calendar.noEvents}</span>}
+          </div>
+          <table className="s">
+            <thead>
+              <tr>
+                <th className="tc" />
+                {s.people.map(p => <th key={p.id} style={{ color: p.color, borderTopColor: p.color }}>{p.name}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="tc">
+                  <div className="col" style={{ height: `${s.totalH}px` }}>
+                    {s.hours.map(h => <span key={h.label} className="hl" style={{ top: `${h.y + 2}px` }}>{h.label}</span>)}
+                  </div>
+                </td>
+                {s.people.map((p, i) => (
+                  <td key={p.id}>
+                    <div className="col grid" style={{ height: `${s.totalH}px`, backgroundSize: `100% ${s.hourHeight}px` }}>
+                      {d.columns[i].map(b => (
+                        <div
+                          key={b.ev.id}
+                          className="blk"
+                          style={{
+                            top: `${b.top}px`, height: `${b.height}px`,
+                            left: `${b.leftPct}%`, width: `${b.widthPct}%`,
+                            backgroundColor: p.color, color: getTextColor(p.color),
+                          }}
+                          title={[b.ev.title, b.time, b.ev.location].filter(Boolean).join(' · ')}
+                        >
+                          <b>{b.ev.title}</b>
+                          {!b.compact && <span className="bt">{b.time}</span>}
+                          {!b.compact && b.ev.location && b.height >= 54 && <span className="bt">{b.ev.location}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function LitePage({ m }: { m: LiteModel }) {
   return (
     <html lang={m.locale}>
@@ -170,7 +241,9 @@ export default function LitePage({ m }: { m: LiteModel }) {
           </div>
         </div>
         <div className="title">{m.title}</div>
-        {m.view === 'month' ? <MonthGrid m={m} /> : <DayList m={m} days={m.days} headings={m.view === 'week'} />}
+        {m.view === 'month' && <MonthGrid m={m} />}
+        {m.schedule && <ScheduleGrid m={m} s={m.schedule} />}
+        {(m.view === 'week' || m.view === 'day') && <DayList m={m} days={m.days} headings={m.view === 'week'} />}
       </body>
     </html>
   );
