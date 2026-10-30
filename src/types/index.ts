@@ -104,6 +104,7 @@ export interface LocaleData {
     agenda: string;
     day: string;
     schedule: string;
+    dayplan: string;
   };
   calendar: {
     weekNumber: string;

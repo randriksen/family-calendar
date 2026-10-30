@@ -19,7 +19,8 @@
     "compare": "Compare",
     "agenda": "Agenda",
     "day": "Day",
-    "schedule": "Schedule"
+    "schedule": "Schedule",
+    "dayplan": "Day plan"
   },
   "calendar": {
     "weekNumber": "Wk",
