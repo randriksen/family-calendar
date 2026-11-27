@@ -212,6 +212,80 @@ On a Philips/TPV Android signage display (tested on a 10BDL3051T, Android 4.4, 1
 1. Browser source → **Settings** → put `http://<host>:3000/lite` in URL slot 1 → OK.
 2. Admin menu → Settings → Signage Display → Source settings → **Boot on source** → Input: Browser, Playlist: 1.
 
+## Frame Picture
+
+`/frame.png` is the coming week as a single 3840×2160 picture: one row per person, one column per day, today first. It exists for TVs that show pictures rather than web pages, chiefly Samsung The Frame in Art Mode.
+
+```
+http://<server>:3000/frame.png            # today and the next 6 days
+http://<server>:3000/frame.png?days=3     # 1 to 14 days; fewer days means larger type
+```
+
+The type size adapts: the largest of six sizes at which everything fits is used. When even the smallest overflows, events that are already over are dropped first, and after that cells are cut short with a `+N`. People with nothing in view get no row. The picture is drawn in-process in about a second, with fonts shipped in `public/fonts`, and characters those fonts lack (emoji, CJK) are removed rather than fetched from a font CDN, so no calendar text leaves the server.
+
+### Showing it on Samsung The Frame
+
+The TV has no way to display a live page as art, so something on the network must upload the picture on a timer. With Home Assistant and the [TheFab21/ha-samsungtv-smart](https://github.com/TheFab21/ha-samsungtv-smart) integration:
+
+1. Create a text helper named `frame_calendar_content_id` (Settings → Devices & services → Helpers → Text).
+2. Add to `configuration.yaml` and restart Home Assistant:
+
+   ```yaml
+   shell_command:
+     fetch_family_calendar: >-
+       curl -fsS -m 30 -o /config/www/family-calendar.png
+       "http://<server>:3000/frame.png"
+   ```
+
+3. Add this automation, replacing `media_player.samsung_frame` with your TV's entity:
+
+   ```yaml
+   alias: Family calendar on The Frame
+   mode: single
+   triggers:
+     - trigger: time_pattern
+       minutes: "/10"
+   conditions:
+     # Only while art is on screen. Uploading to a TV that is off would wake it.
+     - condition: state
+       entity_id: media_player.samsung_frame
+       attribute: art_mode_status
+       state: "on"
+   actions:
+     - action: shell_command.fetch_family_calendar
+       response_variable: fetched
+     - condition: template
+       value_template: "{{ fetched.returncode == 0 }}"
+     - action: samsungtv_smart.art_upload
+       target:
+         entity_id: media_player.samsung_frame
+       data:
+         file_path: /config/www/family-calendar.png
+         file_type: png
+         matte_id: none
+         show: true
+       response_variable: uploaded
+     - condition: template
+       value_template: "{{ uploaded.values() | selectattr('content_id', 'defined') | list | count > 0 }}"
+     - variables:
+         new_id: "{{ (uploaded.values() | selectattr('content_id', 'defined') | first).content_id }}"
+         old_id: "{{ states('input_text.frame_calendar_content_id') }}"
+     - if: "{{ old_id.startswith('MY') and old_id != new_id }}"
+       then:
+         - action: samsungtv_smart.art_delete
+           target:
+             entity_id: media_player.samsung_frame
+           data:
+             content_id: "{{ old_id }}"
+     - action: input_text.set_value
+       target:
+         entity_id: input_text.frame_calendar_content_id
+       data:
+         value: "{{ new_id }}"
+   ```
+
+Each run uploads a fresh picture, shows it, and deletes the previous one so the TV's storage does not fill up. The picture is exactly the panel's 16:9 4K size, which is what lets the TV show it without a matte.
+
 ## Technology Stack
 
 | Layer | Technology |
