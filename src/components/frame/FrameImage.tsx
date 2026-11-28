@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import {
-  FRAME_BAR_W, FRAME_CELL_PAD, FRAME_DAYHEAD_H, FRAME_HEAD_H, FRAME_LABEL_W, FRAME_PAD, FRAME_ROW_PAD,
-  FRAME_TODAY_WEIGHT, type FrameCell, type FrameModel,
+  FRAME_BAR_W, FRAME_CELL_PAD, FRAME_COLHEAD_H, FRAME_HEAD_H, FRAME_LABEL_W, FRAME_PAD, FRAME_ROW_PAD,
+  type FrameCell, type FrameModel,
 } from '@/lib/frame';
 
 // The picture behind /frame.png. It is drawn by next/og (Satori), not a
@@ -29,14 +29,14 @@ function fade(hex: string, bg: string, amount = 0.65): string {
   return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * amount).toString(16).padStart(2, '0')).join('');
 }
 
-function Cell({ m, cell, weight, today }: { m: FrameModel; cell: FrameCell; weight: number; today: boolean }) {
+function Cell({ m, cell, today }: { m: FrameModel; cell: FrameCell; today: boolean }) {
   const box: CSSProperties = {
     display: 'flex', flexDirection: 'column', flexGrow: 1, flexShrink: 0, flexBasis: 0,
     padding: `${FRAME_ROW_PAD}px ${FRAME_CELL_PAD}px`,
     backgroundColor: today ? TODAY_BG : PAPER,
   };
   return (
-    <div style={{ display: 'flex', flexGrow: weight, flexShrink: 0, flexBasis: 0 }}>
+    <div style={{ display: 'flex', flexGrow: 1, flexShrink: 0, flexBasis: 0 }}>
      <div style={{ display: 'flex', width: 2, flexShrink: 0, backgroundColor: RULE }} />
      <div style={box}>
       {cell.items.map(it => (
@@ -61,7 +61,6 @@ function Cell({ m, cell, weight, today }: { m: FrameModel; cell: FrameCell; weig
 }
 
 export default function FrameImage({ m }: { m: FrameModel }) {
-  const weights = m.days.map(d => (d.isToday ? FRAME_TODAY_WEIGHT : 1));
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', width: '100%', height: '100%', padding: FRAME_PAD,
@@ -72,39 +71,40 @@ export default function FrameImage({ m }: { m: FrameModel }) {
         <div style={{ display: 'flex', fontSize: 60, color: MUTED, lineHeight: 1.1, marginTop: 44 }}>{m.subtitle}</div>
       </div>
 
-      <div style={{ display: 'flex', height: FRAME_DAYHEAD_H }}>
+      {/* one column per person */}
+      <div style={{ display: 'flex', height: FRAME_COLHEAD_H }}>
         <div style={{ display: 'flex', width: FRAME_LABEL_W, flexShrink: 0 }} />
-        {m.days.map((d, i) => (
-          <div key={d.key} style={{
-            display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', flexGrow: weights[i], flexShrink: 0, flexBasis: 0,
+        {m.people.map(p => (
+          <div key={p.id} style={{
+            display: 'flex', alignItems: 'flex-end', flexGrow: 1, flexShrink: 0, flexBasis: 0,
             padding: `0 ${FRAME_CELL_PAD}px 14px ${FRAME_CELL_PAD + 2}px`,
-            backgroundColor: d.isToday ? TODAY_BG : PAPER,
           }}>
-            {d.holiday && (
-              <div style={{ display: 'block', lineClamp: 1, fontSize: 34, color: ACCENT, lineHeight: 1.2 } as CSSProperties}>{d.holiday}</div>
-            )}
-            <div style={{ display: 'flex', fontSize: 64, fontWeight: 700, lineHeight: 1.15, color: d.isToday || d.isWeekend || d.holiday ? ACCENT : INK }}>
-              {d.label}
-            </div>
+            <div style={{ display: 'flex', width: 28, height: 28, borderRadius: 14, backgroundColor: p.color, marginRight: 20, marginBottom: 24, flexShrink: 0 }} />
+            <div style={{ display: 'block', flexGrow: 1, flexShrink: 1, flexBasis: 0, lineClamp: 1, fontSize: 64, fontWeight: 700, lineHeight: 1.15 } as CSSProperties}>{p.name}</div>
           </div>
         ))}
       </div>
 
       <div style={{ display: 'flex', height: 4, flexShrink: 0, backgroundColor: INK }} />
 
+      {/* one row per day, running down the page */}
       <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-        {m.rows.length === 0 && (
+        {m.people.length === 0 && (
           <div style={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center', fontSize: 96, color: MUTED }}>{m.emptyText}</div>
         )}
-        {m.rows.map(r => (
-          <div key={r.person.id} style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, flexShrink: 0, flexBasis: `${r.height}px` }}>
-           <div style={{ display: 'flex', flexGrow: 1, flexShrink: 0, flexBasis: 0 }}>
-            <div style={{ display: 'flex', width: FRAME_LABEL_W, flexShrink: 0, alignItems: 'flex-start', padding: `${FRAME_ROW_PAD}px 16px ${FRAME_ROW_PAD}px 0` }}>
-              <div style={{ display: 'flex', width: 28, height: 28, borderRadius: 14, backgroundColor: r.person.color, marginRight: 20, marginTop: 28, flexShrink: 0 }} />
-              <div style={{ display: 'block', lineClamp: 1, fontSize: 64, fontWeight: 700, lineHeight: 1.3 } as CSSProperties}>{r.person.name}</div>
+        {m.people.length > 0 && m.rows.map(r => (
+          <div key={r.day.key} style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, flexShrink: 0, flexBasis: `${r.height}px` }}>
+           <div style={{ display: 'flex', flexGrow: 1, flexShrink: 0, flexBasis: 0, backgroundColor: r.day.isToday ? TODAY_BG : PAPER }}>
+            <div style={{ display: 'flex', flexDirection: 'column', width: FRAME_LABEL_W, flexShrink: 0, padding: `${FRAME_ROW_PAD - 6}px 16px ${FRAME_ROW_PAD}px ${r.day.isToday ? 20 : 0}px` }}>
+              <div style={{ display: 'flex', fontSize: 64, fontWeight: 700, lineHeight: 1.15, color: r.day.isToday || r.day.isWeekend || r.day.holiday ? ACCENT : INK }}>
+                {r.day.label}
+              </div>
+              {r.day.holiday && (
+                <div style={{ display: 'block', lineClamp: 1, fontSize: 34, color: ACCENT, lineHeight: 1.2 } as CSSProperties}>{r.day.holiday}</div>
+              )}
             </div>
             {r.cells.map((cell, i) => (
-              <Cell key={m.days[i].key} m={m} cell={cell} weight={weights[i]} today={m.days[i].isToday} />
+              <Cell key={m.people[i].id} m={m} cell={cell} today={r.day.isToday} />
             ))}
            </div>
            <div style={{ display: 'flex', height: 2, flexShrink: 0, backgroundColor: RULE }} />

@@ -214,7 +214,7 @@ On a Philips/TPV Android signage display (tested on a 10BDL3051T, Android 4.4, 1
 
 ## Frame Picture
 
-`/frame.png` is the coming week as a single 3840×2160 picture: one row per person, one column per day, today first. It exists for TVs that show pictures rather than web pages, chiefly Samsung The Frame in Art Mode.
+`/frame.png` is the coming week as a single 3840×2160 picture: laid out like a paper family calendar with one row per day running down the picture, today at the top, and one column per person. It exists for TVs that show pictures rather than web pages, chiefly Samsung The Frame in Art Mode.
 
 ```
 http://<server>:3000/frame.png            # today and the next 6 days
