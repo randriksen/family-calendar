@@ -4,8 +4,9 @@ import { getEventColor } from '@/lib/eventColor';
 import { getDayNames, getHoliday, getLocaleData, getMonthName } from '@/lib/i18n';
 import { formatTzTime, getEventDateRangeKeys } from '@/lib/tz';
 
-// Model for /frame.png: a still picture of the coming days, one row per person
-// and one column per day, sized for a 4K TV showing it as artwork (Samsung The
+// Model for /frame.png: a still picture of the coming days, laid out like a
+// paper family calendar with one row per day running down the page and one
+// column per person, sized for a 4K TV showing it as artwork (Samsung The
 // Frame's Art Mode). Nobody can scroll or tap a picture, so the layout is
 // solved here: the largest type size at which everything fits is chosen, and
 // only when even the smallest overflows are cells cut short with a "+N".
@@ -16,9 +17,8 @@ export const FRAME_H = 2160;
 // Geometry shared with the component, in pixels of the 4K canvas.
 export const FRAME_PAD = 72;
 export const FRAME_HEAD_H = 200;
-export const FRAME_DAYHEAD_H = 150;
-export const FRAME_LABEL_W = 340;
-export const FRAME_TODAY_WEIGHT = 1.5;
+export const FRAME_COLHEAD_H = 110;
+export const FRAME_LABEL_W = 330;
 export const FRAME_CELL_PAD = 18;
 export const FRAME_BAR_W = 10;
 export const FRAME_ROW_PAD = 16;
@@ -58,15 +58,15 @@ export interface FrameDay {
 }
 
 export interface FrameRow {
-  person: Person;
+  day: FrameDay;
   height: number;        // minimum row height in pixels; spare room is shared equally
-  cells: FrameCell[];
+  cells: FrameCell[];    // one per person, in the order of FrameModel.people
 }
 
 export interface FrameModel {
   title: string;
   subtitle: string;
-  days: FrameDay[];
+  people: Person[];      // the columns; people with nothing in view are left out
   rows: FrameRow[];
   fontSize: number;
   lineHeight: number;
@@ -152,19 +152,18 @@ export function buildFrameModel(input: {
   for (const cells of Array.from(grid.values()))
     for (const cell of cells) cell.sort((a, b) => a.sort.localeCompare(b.sort) || a.title.localeCompare(b.title));
 
-  // Rows with nothing in view would only shrink the type for everyone else.
+  // Columns with nothing in view would only shrink the type for everyone else.
   const active = people.filter(p => grid.get(p.id)!.some(c => c.length > 0));
 
-  const weights = days.map(d => (d.isToday ? FRAME_TODAY_WEIGHT : 1));
-  const weightSum = weights.reduce((a, b) => a + b, 0);
   const gridW = FRAME_W - 2 * FRAME_PAD - FRAME_LABEL_W;
-  const bodyH = FRAME_H - 2 * FRAME_PAD - FRAME_HEAD_H - FRAME_DAYHEAD_H;
+  const bodyH = FRAME_H - 2 * FRAME_PAD - FRAME_HEAD_H - FRAME_COLHEAD_H;
+  const cellW = gridW / Math.max(1, active.length) - 2 * FRAME_CELL_PAD - FRAME_BAR_W - 14;
 
   const layout = (fontSize: number, dropPast: boolean) => {
-    const rows = active.map(person => {
-      const cells = grid.get(person.id)!.map((all, i) => {
+    const rows = days.map((day, i) => {
+      const cells = active.map(person => {
+        const all = grid.get(person.id)![i];
         const raw = dropPast ? all.filter(it => !it.past) : all;
-        const cellW = (gridW * weights[i]) / weightSum - 2 * FRAME_CELL_PAD - FRAME_BAR_W - 14;
         return raw.map((it): FrameItem => {
           const textW = cellW - (it.time ? TIME_W * fontSize : 0);
           const perLine = Math.max(4, Math.floor(textW / (CHAR_W * fontSize)));
@@ -172,7 +171,7 @@ export function buildFrameModel(input: {
         });
       });
       const need = Math.max(MIN_ROW_UNITS, ...cells.map(c => c.reduce((s, it) => s + itemUnits(it), 0)));
-      return { person, cells, need };
+      return { day, cells, need };
     });
     const available = (bodyH - rows.length * (2 * FRAME_ROW_PAD + 2)) / fontSize;
     const needed = rows.reduce((s, r) => s + r.need, 0);
@@ -217,7 +216,7 @@ export function buildFrameModel(input: {
       }
       return { items: kept, hidden: items.length - kept.length };
     });
-    return { person: r.person, height: Math.floor(cap * fontSize) + 2 * FRAME_ROW_PAD + 2, cells };
+    return { day: r.day, height: Math.floor(cap * fontSize) + 2 * FRAME_ROW_PAD + 2, cells };
   });
 
   const weekday = (start.getDay() + 6) % 7;
@@ -227,7 +226,7 @@ export function buildFrameModel(input: {
   const subtitle = `${t.calendar.weekNumber} ${getISOWeek(start)} · ${formatTzTime(now.toISOString(), tz)}`;
 
   return {
-    title, subtitle, days, rows, fontSize,
+    title, subtitle, people: active, rows, fontSize,
     lineHeight: CSS_LINE_HEIGHT,
     itemGap: Math.round(ITEM_GAP * fontSize),
     timeWidth: Math.round(TIME_W * fontSize),

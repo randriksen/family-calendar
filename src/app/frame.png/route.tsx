@@ -15,8 +15,8 @@ export const runtime = 'nodejs';
 
 // GET /frame.png?days=<1-14>&date=YYYY-MM-DD
 //
-// The coming days as a 3840x2160 PNG, one row per person and one column per
-// day. Meant to be fetched on a timer and uploaded to a TV that shows
+// The coming days as a 3840x2160 PNG, one row per day running down the
+// picture and one column per person. Meant to be fetched on a timer and uploaded to a TV that shows
 // pictures rather than web pages (Samsung The Frame's Art Mode); see the
 // README. `date` pins the first day and exists for testing; by default the
 // picture starts today.
