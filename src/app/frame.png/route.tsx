@@ -13,10 +13,11 @@ import type { CalendarEvent, CalendarSource, Person } from '@/types';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// GET /frame.png?days=<1-14>&date=YYYY-MM-DD
+// GET /frame.png?days=<1-14>&layout=vertical|horizontal&date=YYYY-MM-DD
 //
-// The coming days as a 3840x2160 PNG, one row per day running down the
-// picture and one column per person. Meant to be fetched on a timer and uploaded to a TV that shows
+// The coming days as a 3840x2160 PNG, by default one row per day running
+// down the picture and one column per person; layout=horizontal turns it
+// round, one row per person and one column per day. Meant to be fetched on a timer and uploaded to a TV that shows
 // pictures rather than web pages (Samsung The Frame's Art Mode); see the
 // README. `date` pins the first day and exists for testing; by default the
 // picture starts today.
@@ -60,6 +61,7 @@ export async function GET(request: NextRequest) {
     startKey, dayCount, todayKey, now, events, people,
     sources: getSources() as CalendarSource[],
     settings,
+    layout: query.get('layout') === 'horizontal' ? 'horizontal' : 'vertical',
   });
 
   // ImageResponse insists on a year-long immutable Cache-Control, which would
