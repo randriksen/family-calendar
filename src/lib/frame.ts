@@ -9,8 +9,10 @@ import { formatTzTime, getEventDateRangeKeys } from '@/lib/tz';
 // per day running down the page and one column per person; "horizontal" turns
 // it round, one row per person and one column per day. Sized for a 4K TV showing it as artwork (Samsung The
 // Frame's Art Mode). Nobody can scroll or tap a picture, so the layout is
-// solved here: the largest type size at which everything fits is chosen, and
-// only when even the smallest overflows are cells cut short with a "+N".
+// solved here: everything still to come is shown, at the largest type size at
+// which it all fits, with busy cells set in two columns when that allows
+// larger type. Events that are over are left out. Only in the pathological
+// case where even the smallest type overflows is a cell cut short with a "+N".
 
 export const FRAME_W = 3840;
 export const FRAME_H = 2160;
@@ -22,7 +24,8 @@ export const FRAME_TODAY_WEIGHT = 1.5;   // today's column is wider when days ru
 export const FRAME_CELL_PAD = 18;
 export const FRAME_BAR_W = 10;
 export const FRAME_ROW_PAD = 16;
-const FONT_SIZES = [60, 54, 48, 42, 38, 34];
+const FONT_SIZES = [60, 54, 48, 42, 38, 34, 31, 28, 26, 24, 22, 20, 18, 16, 14, 12];
+export const FRAME_SUBCOL_GAP = 28;   // between the two columns of a busy cell
 const LINE_HEIGHT = 1.3;       // real line pitch, in ems
 // Satori sizes a line as the font's own height scaled by lineHeight / 1.2, not
 // as lineHeight ems. Noto Sans is 1.362 em tall, so the CSS value has to be
@@ -32,21 +35,21 @@ const ITEM_GAP = 0.22;        // space under each item, in ems
 const CHAR_W = 0.57;          // average glyph advance, in ems
 const TIME_SCALE = 0.8;       // the time is set smaller than the title
 const TIME_W = 2.75;          // width reserved for "00:00", in ems of the title size
-// Every row can hold at least one two-line event and a "+N" under it.
-const MIN_ROW_UNITS = 2 * LINE_HEIGHT + ITEM_GAP + LINE_HEIGHT * TIME_SCALE;
+
+// A cell is only split in two columns if each still fits this many characters a line.
+const MIN_TWO_UP_CHARS = 16;
 
 export interface FrameItem {
   key: string;
   time: string | null;   // null for all-day and for days an event merely spans
   title: string;
   color: string;
-  past: boolean;
   lines: number;         // estimated wrapped lines of the title, 1 or 2
 }
 
 export interface FrameCell {
-  items: FrameItem[];
-  hidden: number;        // events left out for lack of room
+  columns: FrameItem[][]; // one stack of events, or two side by side when the cell is busy
+  hidden: number;         // events left out for lack of room; 0 unless nothing else worked
 }
 
 export interface FrameDay {
@@ -77,6 +80,7 @@ export interface FrameModel {
   colWeights: number[];
   empty: boolean;        // nobody has anything in view
   labelWidth: number;    // width of the row-label column
+  labelFontSize: number; // row labels shrink when there are many rows
   colHeadHeight: number;
   rows: FrameRow[];
   fontSize: number;
@@ -150,6 +154,9 @@ export function buildFrameModel(input: {
     const endMs = new Date(ev.end_date || ev.start_date).getTime();
     for (const day of days) {
       if (day.key < startStr || day.key > endStr) continue;
+      // What is over is no longer worth the room: timed events once they have
+      // ended, all-day ones once their day has.
+      if (ev.all_day ? day.key < todayKey : endMs < now.getTime()) continue;
       const startsHere = day.key === startStr;
       const timed = !ev.all_day && startsHere;
       cells[dayIndex.get(day.key)!].push({
@@ -157,7 +164,6 @@ export function buildFrameModel(input: {
         time: timed ? formatTzTime(ev.start_date, tz) : null,
         title,
         color,
-        past: ev.all_day ? day.key < todayKey : endMs < now.getTime(),
         // all-day and carried-over events first, then by start time
         sort: timed ? `1${ev.start_date}` : `0${ev.start_date}`,
       });
@@ -176,6 +182,9 @@ export function buildFrameModel(input: {
   const cols = vertical ? personHeads : dayHeads;
   const colWeights = cols.map(c => (c.day?.isToday ? FRAME_TODAY_WEIGHT : 1));
   const weightSum = colWeights.reduce((a, b) => a + b, 0) || 1;
+  const labelFontSize = rowHeads.length > 9 ? 46 : 64;
+  // Every row is at least tall enough for its day or person label.
+  const minRowPx = Math.round(labelFontSize * 1.15) + 22;
   const labelWidth = vertical ? 330 : 340;
   const colHeadHeight = vertical ? 110 : 150;
   const gridW = FRAME_W - 2 * FRAME_PAD - labelWidth;
@@ -186,63 +195,83 @@ export function buildFrameModel(input: {
     return { all: grid.get(person.id)![dayIndex.get(day.key)!], isToday: day.isToday };
   };
 
-  const layout = (fontSize: number, dropPast: boolean) => {
+  const stack = (items: FrameItem[]) => items.reduce((sum, it) => sum + itemUnits(it), 0);
+  const wrap = (raw: RawItem[], width: number, fontSize: number) => raw.map((it): FrameItem => {
+    const textW = width - FRAME_BAR_W - 14 - (it.time ? TIME_W * fontSize : 0);
+    const perLine = Math.max(4, Math.floor(textW / (CHAR_W * fontSize)));
+    return { ...it, lines: it.title.length > perLine ? 2 : 1 };
+  });
+
+  const layout = (fontSize: number, twoUp: boolean) => {
     const rows = rowHeads.map(head => {
       const cells = cols.map((col, i) => {
-        const { all } = bucket(head, col);
-        const raw = dropPast ? all.filter(it => !it.past) : all;
-        const cellW = (gridW * colWeights[i]) / weightSum - 2 * FRAME_CELL_PAD - FRAME_BAR_W - 14;
-        return raw.map((it): FrameItem => {
-          const textW = cellW - (it.time ? TIME_W * fontSize : 0);
-          const perLine = Math.max(4, Math.floor(textW / (CHAR_W * fontSize)));
-          return { ...it, lines: it.title.length > perLine ? 2 : 1 };
-        });
+        const raw = bucket(head, col).all;
+        const innerW = (gridW * colWeights[i]) / weightSum - 2 * FRAME_CELL_PAD;
+        const one = [wrap(raw, innerW, fontSize)];
+        if (!twoUp || raw.length < 2) return one;
+        // Two columns, read down then across, split where they balance best.
+        // Not where a column would be too narrow to hold words: smaller type
+        // in one column reads better than titles chopped mid-word.
+        const halfW = (innerW - FRAME_SUBCOL_GAP) / 2;
+        if ((halfW - FRAME_BAR_W - 14 - TIME_W * fontSize) / (CHAR_W * fontSize) < MIN_TWO_UP_CHARS) return one;
+        const half = wrap(raw, halfW, fontSize);
+        let best = 1, bestH = Infinity;
+        for (let cut = 1; cut < half.length; cut++) {
+          const h = Math.max(stack(half.slice(0, cut)), stack(half.slice(cut)));
+          if (h < bestH - 0.001) { bestH = h; best = cut; }
+        }
+        return bestH < stack(one[0]) - 0.001 ? [half.slice(0, best), half.slice(best)] : one;
       });
-      const need = Math.max(MIN_ROW_UNITS, ...cells.map(c => c.reduce((s, it) => s + itemUnits(it), 0)));
-      return { head, cells, need };
+      const minUnits = (minRowPx - 2 * FRAME_ROW_PAD) / fontSize;
+      const need = Math.max(minUnits, ...cells.map(c => Math.max(...c.map(stack))));
+      return { head, cells, need, minUnits };
     });
     const available = (bodyH - rows.length * (2 * FRAME_ROW_PAD + 2)) / fontSize;
     const needed = rows.reduce((s, r) => s + r.need, 0);
     return { rows, available, needed };
   };
 
-  // Largest type that fits. When nothing fits, events that are already over
-  // are the first to go, and only then is anything still to come cut.
+  // Largest type at which everything fits, preferring single-column cells at
+  // any given size.
   const smallest = FONT_SIZES[FONT_SIZES.length - 1];
   let fontSize = smallest;
   let solved = layout(smallest, true);
-  search: for (const dropPast of [false, true]) {
-    for (const size of FONT_SIZES) {
-      const attempt = layout(size, dropPast);
+  search: for (const size of FONT_SIZES) {
+    for (const twoUp of [false, true]) {
+      const attempt = layout(size, twoUp);
       if (attempt.needed <= attempt.available) { fontSize = size; solved = attempt; break search; }
     }
   }
 
-  // If even the smallest size overflows, share the height in proportion to
-  // need and cut each cell to what its row can hold.
-  // Rows already at the minimum keep it; the rest shrink to make up for them.
-  const minCap = MIN_ROW_UNITS;
+  // Last resort, when even the smallest size overflows: share the height in
+  // proportion to need and cut each cell to what its row can hold. Rows
+  // already at the minimum keep it; the rest shrink to make up for them.
   let scale = solved.needed > solved.available ? solved.available / solved.needed : 1;
   if (scale < 1) {
-    const atMin = solved.rows.filter(r => r.need * scale <= minCap);
+    const atMin = solved.rows.filter(r => r.need * scale <= r.minUnits);
+    const fixed = atMin.reduce((s, r) => s + r.minUnits, 0);
     const flexible = solved.needed - atMin.reduce((s, r) => s + r.need, 0);
-    if (flexible > 0) scale = Math.max(0, solved.available - atMin.length * minCap) / flexible;
+    if (flexible > 0) scale = Math.max(0, solved.available - fixed) / flexible;
   }
   const rows: FrameRow[] = solved.rows.map(r => {
-    const cap = Math.max(minCap, r.need * scale);
-    const cells = r.cells.map((items): FrameCell => {
-      let used = 0;
-      const kept: FrameItem[] = [];
-      for (const it of items) {
-        if (used + itemUnits(it) > cap + 0.01) break;
-        used += itemUnits(it);
-        kept.push(it);
-      }
-      // Leave a line for the "+N" marker when something had to go.
-      while (kept.length < items.length && kept.length > 0 && used + LINE_HEIGHT * TIME_SCALE > cap + 0.01) {
-        used -= itemUnits(kept.pop()!);
-      }
-      return { items: kept, hidden: items.length - kept.length };
+    const cap = Math.max(r.minUnits, r.need * scale);
+    const cells = r.cells.map((columns): FrameCell => {
+      const total = columns.reduce((n, c) => n + c.length, 0);
+      const kept = columns.map(items => {
+        let used = 0;
+        const fit: FrameItem[] = [];
+        for (const it of items) {
+          if (used + itemUnits(it) > cap + 0.01) break;
+          used += itemUnits(it);
+          fit.push(it);
+        }
+        return fit;
+      });
+      let hidden = total - kept.reduce((n, c) => n + c.length, 0);
+      // Leave a line under the last column for the "+N" marker.
+      const last = kept[kept.length - 1];
+      while (hidden > 0 && last.length > 0 && stack(last) + LINE_HEIGHT * TIME_SCALE > cap + 0.01) { last.pop(); hidden++; }
+      return { columns: kept, hidden };
     });
     const today = cols.map(col => bucket(r.head, col).isToday);
     return { head: r.head, height: Math.floor(cap * fontSize) + 2 * FRAME_ROW_PAD + 2, cells, today };
@@ -255,7 +284,7 @@ export function buildFrameModel(input: {
   const subtitle = `${t.calendar.weekNumber} ${getISOWeek(start)} · ${formatTzTime(now.toISOString(), tz)}`;
 
   return {
-    title, subtitle, layout: layoutKind, cols, colWeights, empty: active.length === 0, labelWidth, colHeadHeight, rows, fontSize,
+    title, subtitle, layout: layoutKind, cols, colWeights, empty: active.length === 0, labelWidth, labelFontSize, colHeadHeight, rows, fontSize,
     lineHeight: CSS_LINE_HEIGHT,
     itemGap: Math.round(ITEM_GAP * fontSize),
     timeWidth: Math.round(TIME_W * fontSize),
