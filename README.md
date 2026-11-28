@@ -219,9 +219,10 @@ On a Philips/TPV Android signage display (tested on a 10BDL3051T, Android 4.4, 1
 ```
 http://<server>:3000/frame.png            # today and the next 6 days
 http://<server>:3000/frame.png?days=3     # 1 to 14 days; fewer days means larger type
+http://<server>:3000/frame.png?layout=horizontal   # one row per person, one column per day
 ```
 
-The type size adapts: the largest of six sizes at which everything fits is used. When even the smallest overflows, events that are already over are dropped first, and after that cells are cut short with a `+N`. People with nothing in view get no row. The picture is drawn in-process in about a second, with fonts shipped in `public/fonts`, and characters those fonts lack (emoji, CJK) are removed rather than fetched from a font CDN, so no calendar text leaves the server.
+The type size adapts: the largest of six sizes at which everything fits is used. When even the smallest overflows, events that are already over are dropped first, and after that cells are cut short with a `+N`. `layout=vertical` is the default; `layout=horizontal` turns the grid round, with people down the side and days across, today's column widest. People with nothing in view are left out. The picture is drawn in-process in about a second, with fonts shipped in `public/fonts`, and characters those fonts lack (emoji, CJK) are removed rather than fetched from a font CDN, so no calendar text leaves the server.
 
 ### Showing it on Samsung The Frame
 

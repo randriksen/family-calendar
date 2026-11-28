@@ -4,9 +4,10 @@ import { getEventColor } from '@/lib/eventColor';
 import { getDayNames, getHoliday, getLocaleData, getMonthName } from '@/lib/i18n';
 import { formatTzTime, getEventDateRangeKeys } from '@/lib/tz';
 
-// Model for /frame.png: a still picture of the coming days, laid out like a
-// paper family calendar with one row per day running down the page and one
-// column per person, sized for a 4K TV showing it as artwork (Samsung The
+// Model for /frame.png: a still picture of the coming days as a grid of days
+// and people. The default "vertical" layout is a paper family calendar, one row
+// per day running down the page and one column per person; "horizontal" turns
+// it round, one row per person and one column per day. Sized for a 4K TV showing it as artwork (Samsung The
 // Frame's Art Mode). Nobody can scroll or tap a picture, so the layout is
 // solved here: the largest type size at which everything fits is chosen, and
 // only when even the smallest overflows are cells cut short with a "+N".
@@ -17,8 +18,7 @@ export const FRAME_H = 2160;
 // Geometry shared with the component, in pixels of the 4K canvas.
 export const FRAME_PAD = 72;
 export const FRAME_HEAD_H = 200;
-export const FRAME_COLHEAD_H = 110;
-export const FRAME_LABEL_W = 330;
+export const FRAME_TODAY_WEIGHT = 1.5;   // today's column is wider when days run across
 export const FRAME_CELL_PAD = 18;
 export const FRAME_BAR_W = 10;
 export const FRAME_ROW_PAD = 16;
@@ -57,16 +57,27 @@ export interface FrameDay {
   holiday: string | null;
 }
 
+export type FrameLayout = 'vertical' | 'horizontal';
+
+// What a row or a column stands for: a day or a person, depending on the layout.
+export type FrameHead = { day: FrameDay; person?: undefined } | { person: Person; day?: undefined };
+
 export interface FrameRow {
-  day: FrameDay;
+  head: FrameHead;
   height: number;        // minimum row height in pixels; spare room is shared equally
-  cells: FrameCell[];    // one per person, in the order of FrameModel.people
+  cells: FrameCell[];    // one per column, in the order of FrameModel.cols
+  today: boolean[];      // per cell: does it belong to today
 }
 
 export interface FrameModel {
   title: string;
   subtitle: string;
-  people: Person[];      // the columns; people with nothing in view are left out
+  layout: FrameLayout;
+  cols: FrameHead[];     // people with nothing in view are left out of either axis
+  colWeights: number[];
+  empty: boolean;        // nobody has anything in view
+  labelWidth: number;    // width of the row-label column
+  colHeadHeight: number;
   rows: FrameRow[];
   fontSize: number;
   lineHeight: number;
@@ -101,7 +112,10 @@ export function buildFrameModel(input: {
   people: Person[];
   sources: CalendarSource[];
   settings: Record<string, string>;
+  layout?: FrameLayout;
 }): FrameModel {
+  const layoutKind: FrameLayout = input.layout === 'horizontal' ? 'horizontal' : 'vertical';
+  const vertical = layoutKind === 'vertical';
   const { startKey, dayCount, todayKey, now, events, people, sources, settings } = input;
   const tz = settings.display_timezone || 'Europe/Oslo';
   const locale = settings.locale || 'en';
@@ -152,18 +166,32 @@ export function buildFrameModel(input: {
   for (const cells of Array.from(grid.values()))
     for (const cell of cells) cell.sort((a, b) => a.sort.localeCompare(b.sort) || a.title.localeCompare(b.title));
 
-  // Columns with nothing in view would only shrink the type for everyone else.
+  // People with nothing in view would only shrink the type for everyone else.
   const active = people.filter(p => grid.get(p.id)!.some(c => c.length > 0));
 
-  const gridW = FRAME_W - 2 * FRAME_PAD - FRAME_LABEL_W;
-  const bodyH = FRAME_H - 2 * FRAME_PAD - FRAME_HEAD_H - FRAME_COLHEAD_H;
-  const cellW = gridW / Math.max(1, active.length) - 2 * FRAME_CELL_PAD - FRAME_BAR_W - 14;
+  // Rows are days and columns people, or the other way round.
+  const dayHeads: FrameHead[] = days.map(day => ({ day }));
+  const personHeads: FrameHead[] = active.map(person => ({ person }));
+  const rowHeads = vertical ? dayHeads : personHeads;
+  const cols = vertical ? personHeads : dayHeads;
+  const colWeights = cols.map(c => (c.day?.isToday ? FRAME_TODAY_WEIGHT : 1));
+  const weightSum = colWeights.reduce((a, b) => a + b, 0) || 1;
+  const labelWidth = vertical ? 330 : 340;
+  const colHeadHeight = vertical ? 110 : 150;
+  const gridW = FRAME_W - 2 * FRAME_PAD - labelWidth;
+  const bodyH = FRAME_H - 2 * FRAME_PAD - FRAME_HEAD_H - colHeadHeight;
+  const bucket = (row: FrameHead, col: FrameHead) => {
+    const person = (row.person ?? col.person)!;
+    const day = (row.day ?? col.day)!;
+    return { all: grid.get(person.id)![dayIndex.get(day.key)!], isToday: day.isToday };
+  };
 
   const layout = (fontSize: number, dropPast: boolean) => {
-    const rows = days.map((day, i) => {
-      const cells = active.map(person => {
-        const all = grid.get(person.id)![i];
+    const rows = rowHeads.map(head => {
+      const cells = cols.map((col, i) => {
+        const { all } = bucket(head, col);
         const raw = dropPast ? all.filter(it => !it.past) : all;
+        const cellW = (gridW * colWeights[i]) / weightSum - 2 * FRAME_CELL_PAD - FRAME_BAR_W - 14;
         return raw.map((it): FrameItem => {
           const textW = cellW - (it.time ? TIME_W * fontSize : 0);
           const perLine = Math.max(4, Math.floor(textW / (CHAR_W * fontSize)));
@@ -171,7 +199,7 @@ export function buildFrameModel(input: {
         });
       });
       const need = Math.max(MIN_ROW_UNITS, ...cells.map(c => c.reduce((s, it) => s + itemUnits(it), 0)));
-      return { day, cells, need };
+      return { head, cells, need };
     });
     const available = (bodyH - rows.length * (2 * FRAME_ROW_PAD + 2)) / fontSize;
     const needed = rows.reduce((s, r) => s + r.need, 0);
@@ -216,7 +244,8 @@ export function buildFrameModel(input: {
       }
       return { items: kept, hidden: items.length - kept.length };
     });
-    return { day: r.day, height: Math.floor(cap * fontSize) + 2 * FRAME_ROW_PAD + 2, cells };
+    const today = cols.map(col => bucket(r.head, col).isToday);
+    return { head: r.head, height: Math.floor(cap * fontSize) + 2 * FRAME_ROW_PAD + 2, cells, today };
   });
 
   const weekday = (start.getDay() + 6) % 7;
@@ -226,7 +255,7 @@ export function buildFrameModel(input: {
   const subtitle = `${t.calendar.weekNumber} ${getISOWeek(start)} · ${formatTzTime(now.toISOString(), tz)}`;
 
   return {
-    title, subtitle, people: active, rows, fontSize,
+    title, subtitle, layout: layoutKind, cols, colWeights, empty: active.length === 0, labelWidth, colHeadHeight, rows, fontSize,
     lineHeight: CSS_LINE_HEIGHT,
     itemGap: Math.round(ITEM_GAP * fontSize),
     timeWidth: Math.round(TIME_W * fontSize),
